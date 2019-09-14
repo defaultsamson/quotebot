@@ -2,8 +2,8 @@ const Discord = require("discord.js")
 const client = new Discord.Client()
 const fs = require("fs")
 
-const QUOTES_FILE = "quotes.txt"
-const TOKEN_FILE = "token.txt"
+const QUOTES_FILE = "/home/samson/quotebot/quotes.txt"
+const TOKEN_FILE = "/home/samson/quotebot/token.txt"
 const QUOTES_CHANNEL_ID = "622277602782085120"
 const ERROR_TIME = 20000
 
