@@ -76,7 +76,7 @@ client.on("message", m => {
 				saveFile()
 
 				m.delete().catch(console.error)
-				m.reply("Quote " + (num + 1) + " removed.").then(msg => msg.delete(ERROR_TIME)).catch(console.error)
+				m.reply("Quote #" + (num + 1) + " removed.").then(msg => msg.delete(ERROR_TIME)).catch(console.error)
 
 			} else {
 				m.reply(getInsult() + " I only expected a single number afterwards.").catch(console.error)
@@ -108,7 +108,7 @@ client.on("message", m => {
 					console.log("ERROR: Couldn't find quotesChannel")
 				}
 				m.delete().catch(console.error)
-				m.reply("Quote " + QUOTES.length + " added.").then(msg => msg.delete(ERROR_TIME)).catch(console.error)
+				m.reply("Quote #" + QUOTES.length + " added.").then(msg => msg.delete(ERROR_TIME)).catch(console.error)
 			}
 		} else {
 			m.reply(getInsult() + " Use `!help`").catch(console.error)
