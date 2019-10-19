@@ -142,7 +142,7 @@ client.on("message", m => {
 				for (let i = 1; i < splitMess.length; i++) quote += splitMess[i] + (i != splitMess.length -1 ? " " : "")
 				var matches = sim.findBestMatch(quote, QUOTES)
 				var result = matches.bestMatch.target
-				m.reply(result).catch(console.error)
+				m.reply("Quote #" + (result.bestMatchIndex + 1) + ": " + result).catch(console.error)
 			}
 
 		} else if (mess.indexOf("q") == 1 || mess.indexOf("quoteadd") == 1 || mess.indexOf("addquote") == 1 || mess.indexOf("quote") == 1) {
