@@ -3,9 +3,9 @@ const client = new Discord.Client()
 const fs = require("fs")
 const sim = require('string-similarity');
 
-const QUOTES_FILE = "quotes.txt"
-const TOKEN_FILE = "token.txt"
-const QUOTES_CHANNEL_ID = "635032935828815882"//"622277602782085120"
+const QUOTES_FILE = "/home/samson/quotebot/quotes.txt"
+const TOKEN_FILE = "/home/samson/quotebot/token.txt"
+const QUOTES_CHANNEL_ID = "622277602782085120"
 const BOT_ID = "622290044287188993"
 const ERROR_TIME = 20000
 
