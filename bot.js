@@ -1,6 +1,7 @@
 const Discord = require("discord.js")
 const client = new Discord.Client()
 const fs = require("fs")
+const sim = require('string-similarity');
 
 const QUOTES_FILE = "quotes.txt"
 const TOKEN_FILE = "token.txt"
@@ -109,6 +110,7 @@ client.on("message", m => {
 				"`!q <message>` to add a new quote\n" +
 				"`!q <number>` to get a specific quote\n" +
 				"`!q` to get a random quote\n" +
+				"`!find <message>` to search for a quote with a similar `message`\n" +
 				"`!remove <number>` to remove a quote"
 				).catch(console.error)
 
@@ -129,10 +131,24 @@ client.on("message", m => {
 				m.reply(getInsult() + " I only expected a single number afterwards.").catch(console.error)
 			}
 
+		} else if (mess.indexOf("f") == 1 || mess.indexOf("find") == 1 || mess.indexOf("s") == 1 || mess.indexOf("search") == 1) {
+
+			if (QUOTES.length == 0) {
+				console.log("ERROR: No quotes found")
+				m.reply("No quotes found.").catch(console.error)
+			} else {
+				let splitMess = mess.split(" ")
+				let quote = ""
+				for (let i = 1; i < splitMess.length; i++) quote += splitMess[i] + (i != splitMess.length -1 ? " " : "")
+				var matches = sim.findBestMatch(quote, QUOTES)
+				var result = matches.bestMatch.target
+				m.reply(result).catch(console.error)
+			}
+
 		} else if (mess.indexOf("q") == 1 || mess.indexOf("quoteadd") == 1 || mess.indexOf("addquote") == 1 || mess.indexOf("quote") == 1) {
 			parseQuoteSyntax(m, mess)
 		} else {
-			m.reply(getInsult() + " Use `!help`").catch(console.error)
+			m.reply(getInsult() + " Use `!help`.").catch(console.error)
 		}
 	// if bot is mentioned and it's the first thing in the string
 	} else if (m.isMentioned(client.user) && mess.split(" ")[0] == ("<@" + BOT_ID + ">")) {
