@@ -2,9 +2,10 @@ const Discord = require("discord.js")
 const client = new Discord.Client()
 const fs = require("fs")
 
-const QUOTES_FILE = "/home/samson/quotebot/quotes.txt"
-const TOKEN_FILE = "/home/samson/quotebot/token.txt"
-const QUOTES_CHANNEL_ID = "622277602782085120"
+const QUOTES_FILE = "quotes.txt"
+const TOKEN_FILE = "token.txt"
+const QUOTES_CHANNEL_ID = "635032935828815882"//"622277602782085120"
+const BOT_ID = "622290044287188993"
 const ERROR_TIME = 20000
 
 let QUOTES = []
@@ -54,6 +55,46 @@ function parseNumber(num, m) {
 	return num
 }
 
+function parseQuoteSyntax(m, mess) {
+	let splitMess = mess.split(" ")
+	// If there's nothing after the first @ or !q, must be requesting a random quote
+	if (splitMess.length == 1) { 
+
+		if (QUOTES.length == 0) {
+			console.log("ERROR: No quotes found")
+			m.reply("No quotes found.").catch(console.error)
+		} else {
+			let n = Math.floor(Math.random()*QUOTES.length)
+			m.reply("Quote #" + (n + 1) + ": " + QUOTES[n]).catch(console.error)
+		}
+	// If there's only one thing after the command, find that numbered quote
+	} else if (splitMess.length == 2) {
+
+		let num = parseNumber(splitMess[1], m)
+		if (num < 0) return
+		m.reply("Quote #" + (num + 1) + ": " + QUOTES[num]).catch(console.error)
+
+	// Else it must be a quote
+	} else {
+		// puts all the quote into one big string
+		let quote = ""
+		for (let i = 1; i < splitMess.length; i++) quote += splitMess[i] + (i != splitMess.length -1 ? " " : "")
+
+		QUOTES.push(quote)
+		saveFile()
+
+		let quotesChannel = m.guild.channels.find(c => c.id === QUOTES_CHANNEL_ID);
+		if (quotesChannel) {
+			quotesChannel.send(quote).catch(console.error)
+		} else {
+			m.reply("Couldn't find quotes channel (ID: " + QUOTES_CHANNEL_ID + ").").catch(console.error)
+			console.log("ERROR: Couldn't find quotesChannel")
+		}
+		m.delete().catch(console.error)
+		m.reply("Quote #" + QUOTES.length + " added.").then(msg => msg.delete(ERROR_TIME)).catch(console.error)
+	}
+}
+
 client.on("ready", () => {
 	console.log("Logged in as " + client.user.tag + "!")
 })
@@ -62,18 +103,24 @@ client.on("message", m => {
 	var mess = m.content
 
 	// If there's an exclaimation point, we know it's a command
-	if (mess.indexOf("!") == 0) {
+	if (mess.charAt(0) == '!' && mess.charAt(1) != '!') { //mess.indexOf("!") == 0) {
 		if (mess.indexOf("h") == 1 || mess.indexOf("help") == 1) {
-			m.reply("You can use `!q` or `!quote`. Use `!q <number>` to get a specific quote, or do `!q <message>` to add a new quote. Use `!remove <number>` to remove a quote. @me to get a random quote.").catch(console.error)
-		} else if (mess.indexOf("remove") == 1 || mess.indexOf("quoteremove") == 1 || mess.indexOf("removequote") == 1) {
+			m.reply("You can use `!q`, `!quote` or you can @me.\n" +
+				"`!q <message>` to add a new quote\n" +
+				"`!q <number>` to get a specific quote\n" +
+				"`!q` to get a random quote\n" +
+				"`!remove <number>` to remove a quote"
+				).catch(console.error)
+
+		} else if (mess.indexOf("remove") == 1 || mess.indexOf("r") == 1 || mess.indexOf("quoteremove") == 1 || mess.indexOf("removequote") == 1) {
 
 			let splitMess = mess.split(" ")
 			if (splitMess.length == 2) {
 
 				let num = parseNumber(splitMess[1], m)
 				if (num < 0) return
-				QUOTES.splice(num, 1)
-				saveFile()
+				QUOTES.splice(num, 1) // Delete the quote from the array
+				saveFile() // Save the new array to the file
 
 				m.delete().catch(console.error)
 				m.reply("Quote #" + (num + 1) + " removed.").then(msg => msg.delete(ERROR_TIME)).catch(console.error)
@@ -83,41 +130,13 @@ client.on("message", m => {
 			}
 
 		} else if (mess.indexOf("q") == 1 || mess.indexOf("quoteadd") == 1 || mess.indexOf("addquote") == 1 || mess.indexOf("quote") == 1) {
-
-			let splitMess = mess.split(" ")
-			// If there's only one thing after the command, find that numbered quote
-			if (splitMess.length == 2) {
-
-				let num = parseNumber(splitMess[1], m)
-				if (num < 0) return
-				m.reply("Quote #" + (num + 1) + ": " + QUOTES[num]).catch(console.error)
-
-			// Else it must be a quote
-			} else {
-				// puts all the quote into one big string
-				let quote = ""
-				for (let i = 1; i < splitMess.length; i++) quote += splitMess[i] + (i != splitMess.length -1 ? " " : "")
-
-				QUOTES.push(quote)
-				saveFile()
-
-				let quotesChannel = m.guild.channels.find(c => c.id === QUOTES_CHANNEL_ID);
-				if (quotesChannel) {
-					quotesChannel.send(quote).catch(console.error)
-				} else {
-					console.log("ERROR: Couldn't find quotesChannel")
-				}
-				m.delete().catch(console.error)
-				m.reply("Quote #" + QUOTES.length + " added.").then(msg => msg.delete(ERROR_TIME)).catch(console.error)
-			}
+			parseQuoteSyntax(m, mess)
 		} else {
 			m.reply(getInsult() + " Use `!help`").catch(console.error)
 		}
-
-	} else if (m.isMentioned(client.user)) {
-		if (QUOTES.length == 0) return
-		let n = Math.floor(Math.random()*QUOTES.length)
-		m.channel.send("Quote #" + (n + 1) + ": " + QUOTES[n]).catch(console.error)
+	// if bot is mentioned and it's the first thing in the string
+	} else if (m.isMentioned(client.user) && mess.split(" ")[0] == ("<@" + BOT_ID + ">")) {
+		parseQuoteSyntax(m, mess)
 	}
 })
 
