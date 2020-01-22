@@ -3,7 +3,8 @@ const client = new Discord.Client()
 const fs = require("fs")
 const sim = require('string-similarity');
 
-const QUOTES_FILE = "/home/samson/quotebot/quotes.txt"
+const QUOTES_FILE = "/home/samson/quotebot/quotes.json"
+const PRETTY_QUOTES_FILE = "/home/samson/quotebot/quotes.txt"
 const TOKEN_FILE = "/home/samson/quotebot/token.txt"
 const QUOTES_CHANNEL_ID = "622277602782085120"
 const BOT_ID = "622290044287188993"
@@ -20,6 +21,7 @@ function saveFile() {
 			// console.log('File written!');
 		}
 	})
+	fs.writeFile(PRETTY_QUOTES_FILE, QUOTES.join("\n"), (err) => {})
 }
 
 
@@ -150,8 +152,8 @@ client.on("message", m => {
 		} else {
 			m.reply(getInsult() + " Use `!help`.").catch(console.error)
 		}
-	// if bot is mentioned and it's the first thing in the string
-	} else if (m.isMentioned(client.user) && mess.split(" ")[0] == ("<@" + BOT_ID + ">")) {
+	// if bot is mentioned
+	} else if (m.isMentioned(client.user)) {
 		parseQuoteSyntax(m, mess)
 	}
 })
