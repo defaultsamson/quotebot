@@ -21,7 +21,14 @@ function saveFile() {
 			// console.log('File written!');
 		}
 	})
-	fs.writeFile(PRETTY_QUOTES_FILE, QUOTES.join("\n"), (err) => {})
+
+
+	let tempquotes = []
+	for (i in QUOTES) {
+		tempquotes.push("#" + i + ": " + QUOTES[i])
+	}
+
+	fs.writeFile(PRETTY_QUOTES_FILE, tempquotes.join("\n"), (err) => {})
 }
 
 
