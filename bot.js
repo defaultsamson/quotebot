@@ -5,12 +5,14 @@ const sim = require('string-similarity');
 
 const QUOTES_FILE = "/home/samson/quotebot/quotes.json"
 const PRETTY_QUOTES_FILE = "/home/samson/quotebot/quotes.txt"
+const REMOVED_FILE = "/home/samson/quotebot/removed.json"
 const TOKEN_FILE = "/home/samson/quotebot/token.txt"
 const QUOTES_CHANNEL_ID = "622277602782085120"
 const BOT_ID = "622290044287188993"
 const ERROR_TIME = 20000
 
 let QUOTES = []
+let REMOVED = []
 let INSULTS = []
 
 function saveFile() {
@@ -29,6 +31,8 @@ function saveFile() {
 	}
 
 	fs.writeFile(PRETTY_QUOTES_FILE, tempquotes.join("\n"), (err) => {})
+
+	fs.writeFile(REMOVED_FILE, JSON.stringify(REMOVED), (err) => {})
 }
 
 
@@ -43,6 +47,19 @@ function loadFile() {
 			} catch (e) {
 				QUOTES = []
 				console.log("No quotes found")
+			}
+		}
+	})
+	fs.readFile(REMOVED_FILE, (err, data) => {
+		if (err) {
+			console.log(err)
+		} else {
+			try {
+				REMOVED = JSON.parse(data)
+				console.log("Loaded removed quotes: " + REMOVED.length)
+			} catch (e) {
+				REMOVED = []
+				console.log("No removed quotes found")
 			}
 		}
 	})
@@ -130,6 +147,7 @@ client.on("message", m => {
 
 				let num = parseNumber(splitMess[1], m)
 				if (num < 0) return
+				REMOVED.push(QUOTES[num])
 				QUOTES.splice(num, 1) // Delete the quote from the array
 				saveFile() // Save the new array to the file
 
