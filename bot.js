@@ -27,7 +27,8 @@ function saveFile() {
 
 	let tempquotes = []
 	for (i in QUOTES) {
-		tempquotes.push("#" + (i+1) + ": " + QUOTES[i])
+		var num = parseInt(i) + 1
+		tempquotes.push("#" + num + ": " + QUOTES[i])
 	}
 
 	fs.writeFile(PRETTY_QUOTES_FILE, tempquotes.join("\n"), (err) => {})
@@ -92,14 +93,14 @@ function parseQuoteSyntax(m, mess) {
 			m.reply("No quotes found.").catch(console.error)
 		} else {
 			let n = Math.floor(Math.random()*QUOTES.length)
-			m.reply("Quote #" + (n + 1) + ": " + QUOTES[n]).catch(console.error)
+			m.reply("#" + (n + 1) + ": " + QUOTES[n]).catch(console.error)
 		}
 	// If there's only one thing after the command, find that numbered quote
 	} else if (splitMess.length == 2) {
 
 		let num = parseNumber(splitMess[1], m)
 		if (num < 0) return
-		m.reply("Quote #" + (num + 1) + ": " + QUOTES[num]).catch(console.error)
+		m.reply("#" + (num + 1) + ": " + QUOTES[num]).catch(console.error)
 
 	// Else it must be a quote
 	} else {
@@ -112,13 +113,13 @@ function parseQuoteSyntax(m, mess) {
 
 		let quotesChannel = m.guild.channels.find(c => c.id === QUOTES_CHANNEL_ID);
 		if (quotesChannel) {
-			quotesChannel.send(quote).catch(console.error)
+			quotesChannel.send("#" + QUOTES.length + ": " + quote).catch(console.error)
 		} else {
 			m.reply("Couldn't find quotes channel (ID: " + QUOTES_CHANNEL_ID + ").").catch(console.error)
 			console.log("ERROR: Couldn't find quotesChannel")
 		}
 		m.delete().catch(console.error)
-		m.reply("Quote #" + QUOTES.length + " added.").then(msg => msg.delete(ERROR_TIME)).catch(console.error)
+		m.reply("#" + QUOTES.length + " added.").then(msg => msg.delete(ERROR_TIME)).catch(console.error)
 	}
 }
 
@@ -128,6 +129,7 @@ client.on("ready", () => {
 
 client.on("message", m => {
 	var mess = m.content
+	mess = mess.replaceAll("“","\"")
 
 	// If there's an exclaimation point, we know it's a command
 	if (mess.charAt(0) == '!' && mess.charAt(1) != '!') { //mess.indexOf("!") == 0) {
@@ -152,7 +154,7 @@ client.on("message", m => {
 				saveFile() // Save the new array to the file
 
 				m.delete().catch(console.error)
-				m.reply("Quote #" + (num + 1) + " removed.").then(msg => msg.delete(ERROR_TIME)).catch(console.error)
+				m.reply("#" + (num + 1) + " removed.").then(msg => msg.delete(ERROR_TIME)).catch(console.error)
 
 			} else {
 				m.reply(getInsult() + " I only expected a single number afterwards.").catch(console.error)
@@ -169,7 +171,7 @@ client.on("message", m => {
 				for (let i = 1; i < splitMess.length; i++) quote += splitMess[i] + (i != splitMess.length -1 ? " " : "")
 				var matches = sim.findBestMatch(quote, QUOTES)
 				var result = matches.bestMatch.target
-				m.reply("Quote #" + (matches.bestMatchIndex + 1) + ": " + result).catch(console.error)
+				m.reply("#" + (matches.bestMatchIndex + 1) + ": " + result).catch(console.error)
 			}
 
 		} else if (mess.indexOf("q") == 1 || mess.indexOf("quoteadd") == 1 || mess.indexOf("addquote") == 1 || mess.indexOf("quote") == 1) {
