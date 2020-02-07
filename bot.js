@@ -27,7 +27,7 @@ function saveFile() {
 
 	let tempquotes = []
 	for (i in QUOTES) {
-		tempquotes.push("#" + i + ": " + QUOTES[i])
+		tempquotes.push("#" + (i+1) + ": " + QUOTES[i])
 	}
 
 	fs.writeFile(PRETTY_QUOTES_FILE, tempquotes.join("\n"), (err) => {})
