@@ -2,7 +2,6 @@ const Discord = require("discord.js")
 const client = new Discord.Client()
 const fs = require("fs")
 const sim = require('string-similarity');
-const random = require('random')
 
 const QUOTES_FILE = "/home/samson/quotebot/quotes.json"
 const PRETTY_QUOTES_FILE = "/home/samson/quotebot/quotes.txt"
@@ -69,17 +68,17 @@ function loadFile() {
 }
 
 function getInsult() {
-	return INSULTS[random.int(0, INSULTS.length - 1)]
+	return INSULTS[Math.floor(Math.random()*INSULTS.length)]
 }
 
 function parseNumber(num, m) {
-	num = parseInt(num, 10)
+	num = parseInt(num, 10) - 1
 	if (isNaN(num)) {
 		m.reply(getInsult() + " That wasn't a number.").catch(console.error)
 		return -1
 	}
-	if (num <= 0) {
-		m.reply(getInsult() + " Give a number greater than zero.").catch(console.error)
+	if (num < 0) {
+		m.reply(getInsult() + "That was a negative number.").catch(console.error)
 		return -1
 	}
 	return num
@@ -88,24 +87,20 @@ function parseNumber(num, m) {
 function parseQuoteSyntax(m, mess) {
 	let splitMess = mess.split(" ")
 	// If there's nothing after the first @ or !q, must be requesting a random quote
-	if (splitMess.length == 1) {
+	if (splitMess.length == 1) { 
 
 		if (QUOTES.length == 0) {
 			console.log("ERROR: No quotes found")
 			m.reply("No quotes found.").catch(console.error)
 		} else {
-			let n = random.int(0, QUOTES.length - 1)
+			let n = Math.floor(Math.random()*QUOTES.length)
 			m.reply("#" + (n + 1) + ": " + QUOTES[n]).catch(console.error)
 		}
 	// If there's only one thing after the command, find that numbered quote
 	} else if (splitMess.length == 2) {
 
-		let num = parseNumber(splitMess[1], m) - 1
-		if (num >= QUOTES.length) {
-        	        m.reply(getInsult() + "Quote #" + num + " doesn't exist.").catch(console.error)
-        	        return
-        	}
-		if (num < 0) return
+		let num = parseNumber(splitMess[1], m)
+		if (num
 		m.reply("#" + (num + 1) + ": " + QUOTES[num]).catch(console.error)
 
 	// Else it must be a quote
@@ -149,33 +144,25 @@ client.on("message", m => {
 				"`!q <number>` to get a specific quote\n" +
 				"`!q` to get a random quote\n" +
 				"`!find <message>` to search for a quote with a similar `message`\n" +
-				"`!remove <number>` to remove a quote" +
-				"`!roll [number] [number] ...` to roll any 'number' sided dice. Give no numbers to roll a D20."
+				"`!remove <number>` to remove a quote"
 				).catch(console.error)
 
 		} else if (mess.indexOf("roll") == 1) {
 			let splitMess = mess.split(" ")
 			if (splitMess.length <= 1) {
-				m.reply(random.int(1, 20))
+				m.reply(Math.floor(Math.random()*20)+1)
 			} else {
-				let replyMess = ""
-				for (let i = 1; i < splitMess.length; i++) {
-					let num = parseNumber(splitMess[i], m)
-					if (num < 0) return
-					replyMess += random.int(1, num) + " "
+				for (var i = 1; i < splitMess.length; i++) {
+					let num = parseNumber(parseMess[i], m)
+					m.reply(Math.floor(Math.random()*20)+1)
 				}
-				m.reply(replyMess)
 			}
 		} else if (mess.indexOf("remove") == 1 || mess.indexOf("quoteremove") == 1 || mess.indexOf("removequote") == 1) {
 
 			let splitMess = mess.split(" ")
 			if (splitMess.length == 2) {
 
-				let num = parseNumber(splitMess[1], m) - 1
-				if (num >= QUOTES.length) {
-       	                		m.reply(getInsult() + "Quote #" + num + " doesn't exist.").catch(console.error)
-       	                		return
-	                	}
+				let num = parseNumber(splitMess[1], m)
 				if (num < 0) return
 				REMOVED.push(QUOTES[num])
 				QUOTES.splice(num, 1) // Delete the quote from the array
