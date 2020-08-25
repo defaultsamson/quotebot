@@ -1,3 +1,4 @@
+
 const Discord = require("discord.js")
 const client = new Discord.Client()
 const fs = require("fs")
@@ -25,7 +26,6 @@ function saveFile() {
 			// console.log('File written!');
 		}
 	})
-
 
 	let tempquotes = []
 	for (i in QUOTES) {
@@ -117,7 +117,10 @@ function parseQuoteSyntax(m, mess) {
 		QUOTES.push(quote)
 		saveFile()
 
-		let quotesChannel = m.guild.channels.find(c => c.id === QUOTES_CHANNEL_ID);
+		// Find the quotes channel based on the ID
+		let quotesChannel = m.guild.channels.resolve(QUOTES_CHANNEL_ID)
+		// for (let c in m.guild.channels) if (c.id === QUOTES_CHANNEL_ID) quotesChannel = c
+
 		if (quotesChannel) {
 			quotesChannel.send("#" + QUOTES.length + ": " + quote).catch(console.error)
 		} else {
@@ -125,7 +128,7 @@ function parseQuoteSyntax(m, mess) {
 			console.log("ERROR: Couldn't find quotesChannel")
 		}
 		m.delete().catch(console.error)
-		m.reply("#" + QUOTES.length + " added.").then(msg => msg.delete(ERROR_TIME)).catch(console.error)
+		m.reply("#" + QUOTES.length + " added.").then(msg => msg.delete({ timeout: ERROR_TIME })).catch(console.error)
 	}
 }
 
@@ -182,7 +185,7 @@ client.on("message", m => {
 				saveFile() // Save the new array to the file
 
 				m.delete().catch(console.error)
-				m.reply("#" + (num + 1) + " removed.").then(msg => msg.delete(ERROR_TIME)).catch(console.error)
+				m.reply("#" + (num + 1) + " removed.").then(msg => msg.delete({ timeout: ERROR_TIME })).catch(console.error)
 
 			} else {
 				m.reply(getInsult() + " I only expected a single number afterwards.").catch(console.error)
@@ -208,7 +211,7 @@ client.on("message", m => {
 			m.reply(getInsult() + " Use `!help`.").catch(console.error)
 		}
 	// if bot is mentioned
-	} else if (m.isMentioned(client.user)) {
+	} else if (m.mentions.users.has(client.user.id)) {
 		parseQuoteSyntax(m, mess)
 	}
 })
