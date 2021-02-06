@@ -6,7 +6,7 @@ const sim = require('string-similarity');
 const random = require('random')
 
 const QUOTES_FILE = __dirname + "/quotes.json"
-const PRETTY_QUOTES_FILE = "__dirname + /quotes.txt"
+const PRETTY_QUOTES_FILE = __dirname + "/quotes.txt"
 const REMOVED_FILE = __dirname + "/removed.json"
 const TOKEN_FILE = __dirname + "/token.txt"
 const QUOTES_CHANNEL_ID = "622277602782085120"
