@@ -5,6 +5,8 @@ const fs = require("fs")
 const sim = require('string-similarity');
 const random = require('random')
 
+const PREFIX = "!"
+
 const QUOTES_FILE = __dirname + "/quotes.json"
 const PRETTY_QUOTES_FILE = __dirname + "/quotes.txt"
 const REMOVED_FILE = __dirname + "/removed.json"
@@ -32,12 +34,22 @@ function startBot() {
     })
 }
 
+let COMMANDS = []
+
+COMMANDS.push({
+    aliases: ["quote", "q", "addquote", "add quote", "quote add", "create"],
+    usage: ["!quote", "!quote <message_to_quote>", "!quote <quote_number>"],
+    func: (m, mess) => {
+        console.log("quote")
+    }
+})
+
 function saveFile() {
 	fs.writeFile(QUOTES_FILE, JSON.stringify(QUOTES), (err) => {
 		if (err) {
 			console.log(err)
 		} else {
-			// console.log('File written!');
+            // console.log('File written!')
 		}
 	})
 
@@ -153,7 +165,32 @@ client.on("ready", () => {
 client.on("message", m => {
 	var mess = m.content
 	if (m.author.id == BOT_ID) return;
-	// mess = mess.replaceAll("“","\"")
+    mess = mess.replaceAll("“","\"")
+
+    // Return if there's no prefix (and check that it's not something like "!!!!")
+    if (mess.charAt(0) != PREFIX || mess.charAt(1) == PREFIX) {
+        return
+    }
+    // Remove the prefix
+    mess = mess.replace(PREFIX, "")
+
+    // Test the input against all prefixes for all commands
+    for (c in COMMANDS) {
+        let command = COMMANDS[c];
+        for (a in command.aliases) {
+            let cAlias = command.aliases[a];
+            // If the message begins with the alias
+            if (mess.indexOf(cAlias) == 0) {
+                // This is the command!
+                // remove the alias from mess
+                mess = mess.replace(cAlias, "")
+                // Execute the command
+                command.func(m, mess);
+            }
+        }
+    }
+
+    return
 
 	// If there's an exclaimation point, we know it's a command
 	if (mess.includes("uwu")) {
