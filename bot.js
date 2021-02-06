@@ -5,10 +5,10 @@ const fs = require("fs")
 const sim = require('string-similarity');
 const random = require('random')
 
-const QUOTES_FILE = "/home/samson/quotebot/quotes.json"
-const PRETTY_QUOTES_FILE = "/home/samson/quotebot/quotes.txt"
-const REMOVED_FILE = "/home/samson/quotebot/removed.json"
-const TOKEN_FILE = "/home/samson/quotebot/token.txt"
+const QUOTES_FILE = __dirname + "/quotes.json"
+const PRETTY_QUOTES_FILE = "__dirname + /quotes.txt"
+const REMOVED_FILE = __dirname + "/removed.json"
+const TOKEN_FILE = __dirname + "/token.txt"
 const QUOTES_CHANNEL_ID = "622277602782085120"
 const BOT_ID = "622290044287188993"
 const EMILY_ID = "158303370182918144"
@@ -17,6 +17,20 @@ const ERROR_TIME = 20000
 let QUOTES = []
 let REMOVED = []
 let INSULTS = []
+
+function startBot() {
+    loadFile()
+
+    // Starts client from token file
+    fs.readFile(TOKEN_FILE, (err, data) => {
+        if (err) {
+            console.log(err)
+            return
+        } else {
+            client.login(JSON.parse(data))
+        }
+    })
+}
 
 function saveFile() {
 	fs.writeFile(QUOTES_FILE, JSON.stringify(QUOTES), (err) => {
@@ -236,15 +250,6 @@ INSULTS.push("Everyone knows the only thing you've fucked is your car exhaust.")
 INSULTS.push("The last thing I want is a dialogue with this cold slice of leftover meatloaf.")
 INSULTS.push("You're the thing you pull out of the sink drain that the disposal couldn't grind up.")
 
-loadFile()
-
-// Starts client from token file
-fs.readFile(TOKEN_FILE, (err, data) => {
-	if (err) {
-		console.log(err)
-	} else {
-		client.login(JSON.parse(data))
-	}
-})
+startBot()
 
 // https://discordapp.com/oauth2/authorize?&client_id=622290044287188993&scope=bot&permissions=75776
