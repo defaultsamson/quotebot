@@ -13,11 +13,11 @@ const TOKEN_FILE = __dirname + "/token.txt"
 const QUOTES_CHANNEL_ID = "622277602782085120"
 const ERROR_TIME = 20000
 
-let QUOTES = []
-let INSULTS = []
+let QUOTES = [];
+let INSULTS = [];
 
 function startBot() {
-    loadFile();
+    QUOTES = loadQuotes();
 
     // Starts client from token file
     fs.readFile(TOKEN_FILE, (err, data) => {
@@ -62,7 +62,7 @@ COMMANDS.push({
             saveRemoved(removed);
             // Remove the quote from the quotes list
             QUOTES.splice(num, 1); // Delete the quote from the array
-            saveFile(); // Save the new array to the file
+            saveQuotes(); // Save the new array to the file
 
 
             // Delete the original message
@@ -111,6 +111,15 @@ COMMANDS.push({
         }
     }
 });
+// Reload command
+COMMANDS.push({
+    aliases: ["reload"],
+    usage: ["!reload"],
+    func: (m, mess) => {
+        QUOTES = loadQuotes();
+        m.reply("Reloaded quotes.");
+    }
+});
 
 function loadRemoved() {
     let removedQuotes = [];
@@ -120,7 +129,7 @@ function loadRemoved() {
         } else {
             try {
                 removedQuotes = JSON.parse(data);
-                console.log("Loaded removed quotes: " + REMOVED.length);
+                console.log("Loaded removed quotes: " + removedQuotes.length);
             } catch (e) {
                 console.log("No removed quotes found");
             }
@@ -133,7 +142,24 @@ function saveRemoved(removedQuotes) {
     fs.writeFile(REMOVED_FILE, JSON.stringify(removedQuotes), (err) => {})
 }
 
-function saveFile() {
+function loadQuotes() {
+    let quotes = [];
+    fs.readFile(QUOTES_FILE, (err, data) => {
+        if (err) {
+            console.log(err);
+        } else {
+            try {
+                quotes = JSON.parse(data);
+                console.log("Loaded quotes: " + quotes.length);
+            } catch (e) {
+                console.log("No quotes found");
+            }
+        }
+    });
+    return quotes;
+}
+
+function saveQuotes() {
 	fs.writeFile(QUOTES_FILE, JSON.stringify(QUOTES), (err) => {
 		if (err) {
             console.log(err);
@@ -149,22 +175,6 @@ function saveFile() {
 	}
 
     fs.writeFile(PRETTY_QUOTES_FILE, tempquotes.join("\n"), (err) => {});
-}
-
-function loadFile() {
-	fs.readFile(QUOTES_FILE, (err, data) => {
-		if (err) {
-            console.log(err);
-		} else {
-			try {
-                QUOTES = JSON.parse(data);
-                console.log("Loaded quotes: " + QUOTES.length);
-			} catch (e) {
-                QUOTES = [];
-                console.log("No quotes found");
-			}
-		}
-    });
 }
 
 function getInsult() {
@@ -203,7 +213,7 @@ function parseQuoteSyntax(m, mess) {
         let num = parseNumber(splitMess[0], m) - 1;
         if (num >= QUOTES.length) {
             m.reply(getInsult() + " Quote #" + num + " doesn't exist.").catch(console.error);
-            return
+            return;
         }
         if (num < 0) return;
         m.reply("#" + (num + 1) + ": " + QUOTES[num]).catch(console.error);
@@ -211,7 +221,7 @@ function parseQuoteSyntax(m, mess) {
 	// Else it must be a quote
     } else {
         QUOTES.push(mess);
-        saveFile();
+        saveQuotes();
 
 		// Find the quotes channel based on the ID
         let quotesChannel = m.guild.channels.resolve(QUOTES_CHANNEL_ID);
