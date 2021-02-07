@@ -11,12 +11,9 @@ const PRETTY_QUOTES_FILE = __dirname + "/quotes.txt"
 const REMOVED_FILE = __dirname + "/removed.json"
 const TOKEN_FILE = __dirname + "/token.txt"
 const QUOTES_CHANNEL_ID = "622277602782085120"
-const BOT_ID = "622290044287188993"
-const EMILY_ID = "158303370182918144"
 const ERROR_TIME = 20000
 
 let QUOTES = []
-let REMOVED = []
 let INSULTS = []
 
 function startBot() {
@@ -51,18 +48,24 @@ COMMANDS.push({
     usage: ["!remove <quote_number>"],
     func: (m, mess) => {
         let splitMess = mess.split(" ");
-        if (splitMess.length == 1) {
+        if (splitMess.length === 1) {
 
-            let num = parseNumber(splitMess[1], m) - 1;
+            let num = parseNumber(splitMess[0], m) - 1;
             if (num >= QUOTES.length) {
                 m.reply(getInsult() + "Quote #" + num + " doesn't exist.").catch(console.error);
                 return;
             }
             if (num < 0) return;
-            REMOVED.push(QUOTES[num]);
+            // Add the quote to the removed quotes list
+            let removed = loadRemoved();
+            removed.push(QUOTES[num]);
+            saveRemoved(removed);
+            // Remove the quote from the quotes list
             QUOTES.splice(num, 1); // Delete the quote from the array
             saveFile(); // Save the new array to the file
 
+
+            // Delete the original message
             m.delete().catch(console.error);
             m.reply("#" + (num + 1) + " removed.").then(msg => msg.delete({ timeout: ERROR_TIME })).catch(console.error);
 
@@ -76,7 +79,7 @@ COMMANDS.push({
     aliases: ["search", "s", "find", "f", "quote search", "quote find", "findquote", "quotefind", "searchquote"],
     usage: ["!search <message_to_search>"],
     func: (m, mess) => {
-        if (QUOTES.length == 0) {
+        if (QUOTES.length === 0) {
             console.log("ERROR: No quotes found");
             m.reply("No quotes found.").catch(console.error);
         } else {
@@ -95,7 +98,7 @@ COMMANDS.push({
     func: (m, mess) => {
         let splitMess = mess.split(" ");
         // If nothing is given, roll a D20
-        if (splitMess.length == 0) {
+        if (splitMess.length === 0) {
             m.reply(random.int(1, 20) + "/20");
         } else {
             let replyMess = "";
@@ -109,27 +112,44 @@ COMMANDS.push({
     }
 });
 
+function loadRemoved() {
+    let removedQuotes = [];
+    fs.readFile(REMOVED_FILE, (err, data) => {
+        if (err) {
+            console.log(err);
+        } else {
+            try {
+                removedQuotes = JSON.parse(data);
+                console.log("Loaded removed quotes: " + REMOVED.length);
+            } catch (e) {
+                console.log("No removed quotes found");
+            }
+        }
+    })
+    return removedQuotes;
+}
+
+function saveRemoved(removedQuotes) {
+    fs.writeFile(REMOVED_FILE, JSON.stringify(removedQuotes), (err) => {})
+}
 
 function saveFile() {
 	fs.writeFile(QUOTES_FILE, JSON.stringify(QUOTES), (err) => {
 		if (err) {
-			console.log(err)
+            console.log(err);
 		} else {
-            // console.log('File written!')
+            // console.log('File written!');
 		}
 	})
 
-	let tempquotes = []
+    let tempquotes = [];
 	for (i in QUOTES) {
-		var num = parseInt(i) + 1
-		tempquotes.push("#" + num + ": " + QUOTES[i])
+        var num = parseInt(i) + 1;
+        tempquotes.push("#" + num + ": " + QUOTES[i]);
 	}
 
-	fs.writeFile(PRETTY_QUOTES_FILE, tempquotes.join("\n"), (err) => {})
-
-	fs.writeFile(REMOVED_FILE, JSON.stringify(REMOVED), (err) => {})
+    fs.writeFile(PRETTY_QUOTES_FILE, tempquotes.join("\n"), (err) => {});
 }
-
 
 function loadFile() {
 	fs.readFile(QUOTES_FILE, (err, data) => {
@@ -144,20 +164,7 @@ function loadFile() {
                 console.log("No quotes found");
 			}
 		}
-	})
-	fs.readFile(REMOVED_FILE, (err, data) => {
-		if (err) {
-            console.log(err);
-		} else {
-			try {
-                REMOVED = JSON.parse(data);
-                console.log("Loaded removed quotes: " + REMOVED.length);
-			} catch (e) {
-                REMOVED = [];
-                console.log("No removed quotes found");
-			}
-		}
-	})
+    });
 }
 
 function getInsult() {
@@ -183,7 +190,7 @@ function parseQuoteSyntax(m, mess) {
 	// If there's nothing after the first @ or !q, must be requesting a random quote
     if (!mess) {
 
-		if (QUOTES.length == 0) {
+        if (QUOTES.length === 0) {
             console.log("ERROR: No quotes found");
             m.reply("No quotes found.").catch(console.error);
 		} else {
@@ -191,9 +198,9 @@ function parseQuoteSyntax(m, mess) {
             m.reply("#" + (n + 1) + ": " + QUOTES[n]).catch(console.error);
 		}
 	// If there's only one thing after the command, find that numbered quote
-    } else if (splitMess.length == 1) {
+    } else if (splitMess.length === 1) {
 
-        let num = parseNumber(mess, m) - 1;
+        let num = parseNumber(splitMess[0], m) - 1;
         if (num >= QUOTES.length) {
             m.reply(getInsult() + " Quote #" + num + " doesn't exist.").catch(console.error);
             return
@@ -227,7 +234,7 @@ client.on("ready", () => {
 
 client.on("message", m => {
     // Ignore the bot's own messages
-    if (m.author.id == BOT_ID) return;
+    if (m.author.id === client.user.id) return;
 
     // Capture the user's message
     var mess = m.content;
@@ -241,7 +248,7 @@ client.on("message", m => {
     }
 
     // Return if there's no prefix (and check that it's not something like "!!!!")
-    if (mess.charAt(0) != PREFIX || mess.charAt(1) == PREFIX) {
+    if (mess.charAt(0) !== PREFIX || mess.charAt(1) === PREFIX) {
         return;
     }
     // Remove the prefix
@@ -253,7 +260,7 @@ client.on("message", m => {
         for (a in command.aliases) {
             let cAlias = command.aliases[a];
             // If the message begins with the alias
-            if (mess.indexOf(cAlias) == 0) {
+            if (mess.indexOf(cAlias) === 0) {
                 // Execute the command
 
                 // Remove the alias from the start of mess
