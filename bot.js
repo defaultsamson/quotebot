@@ -1,4 +1,3 @@
-
 const Discord = require("discord.js")
 const client = new Discord.Client()
 const fs = require("fs")
@@ -21,20 +20,20 @@ let REMOVED = []
 let INSULTS = []
 
 function startBot() {
-    loadFile()
+    loadFile();
 
     // Starts client from token file
     fs.readFile(TOKEN_FILE, (err, data) => {
         if (err) {
-            console.log(err)
-            return
+            console.log(err);
+            return;
         } else {
-            client.login(JSON.parse(data))
+            client.login(JSON.parse(data));
         }
     })
 }
 
-let COMMANDS = []
+let COMMANDS = [];
 
 // Quote command
 COMMANDS.push({
@@ -43,50 +42,50 @@ COMMANDS.push({
             "!quote <message_to_quote>",
             "!quote <quote_number>"],
     func: (m, mess) => {
-        parseQuoteSyntax(m, mess)
+        parseQuoteSyntax(m, mess);
     }
-})
+});
 // Remove command
 COMMANDS.push({
     aliases: ["remove", "delete", "quoteremove", "quote remove", "quotedelete", "quote delete"],
     usage: ["!remove <quote_number>"],
     func: (m, mess) => {
-        let splitMess = mess.split(" ")
+        let splitMess = mess.split(" ");
         if (splitMess.length == 1) {
 
-            let num = parseNumber(splitMess[1], m) - 1
+            let num = parseNumber(splitMess[1], m) - 1;
             if (num >= QUOTES.length) {
-                m.reply(getInsult() + "Quote #" + num + " doesn't exist.").catch(console.error)
-                return
+                m.reply(getInsult() + "Quote #" + num + " doesn't exist.").catch(console.error);
+                return;
             }
-            if (num < 0) return
-            REMOVED.push(QUOTES[num])
-            QUOTES.splice(num, 1) // Delete the quote from the array
-            saveFile() // Save the new array to the file
+            if (num < 0) return;
+            REMOVED.push(QUOTES[num]);
+            QUOTES.splice(num, 1); // Delete the quote from the array
+            saveFile(); // Save the new array to the file
 
-            m.delete().catch(console.error)
-            m.reply("#" + (num + 1) + " removed.").then(msg => msg.delete({ timeout: ERROR_TIME })).catch(console.error)
+            m.delete().catch(console.error);
+            m.reply("#" + (num + 1) + " removed.").then(msg => msg.delete({ timeout: ERROR_TIME })).catch(console.error);
 
         } else {
-            m.reply(getInsult() + " I only expected a single number afterwards.").catch(console.error)
+            m.reply(getInsult() + " I only expected a single number afterwards.").catch(console.error);
         }
     }
-})
+});
 // Search quote command
 COMMANDS.push({
     aliases: ["search", "s", "find", "f", "quote search", "quote find", "findquote", "quotefind", "searchquote"],
     usage: ["!search <message_to_search>"],
     func: (m, mess) => {
         if (QUOTES.length == 0) {
-            console.log("ERROR: No quotes found")
-            m.reply("No quotes found.").catch(console.error)
+            console.log("ERROR: No quotes found");
+            m.reply("No quotes found.").catch(console.error);
         } else {
-            var matches = sim.findBestMatch(mess, QUOTES)
-            var result = matches.bestMatch.target
-            m.reply("#" + (matches.bestMatchIndex + 1) + ": " + result).catch(console.error)
+            var matches = sim.findBestMatch(mess, QUOTES);
+            var result = matches.bestMatch.target;
+            m.reply("#" + (matches.bestMatchIndex + 1) + ": " + result).catch(console.error);
         }
     }
-})
+});
 // Roll command
 COMMANDS.push({
     aliases: ["roll"],
@@ -101,14 +100,14 @@ COMMANDS.push({
         } else {
             let replyMess = "";
             for (i in splitMess) {
-                let num = parseNumber(splitMess[i], m)
-                if (num < 0) return
-                replyMess += random.int(1, num) + "/" + num + " "
+                let num = parseNumber(splitMess[i], m);
+                if (num < 0) return;
+                replyMess += random.int(1, num) + "/" + num + " ";
             }
-            m.reply(replyMess)
+            m.reply(replyMess);
         }
     }
-})
+});
 
 
 function saveFile() {
@@ -135,103 +134,103 @@ function saveFile() {
 function loadFile() {
 	fs.readFile(QUOTES_FILE, (err, data) => {
 		if (err) {
-			console.log(err)
+            console.log(err);
 		} else {
 			try {
-				QUOTES = JSON.parse(data)
-				console.log("Loaded quotes: " + QUOTES.length)
+                QUOTES = JSON.parse(data);
+                console.log("Loaded quotes: " + QUOTES.length);
 			} catch (e) {
-				QUOTES = []
-				console.log("No quotes found")
+                QUOTES = [];
+                console.log("No quotes found");
 			}
 		}
 	})
 	fs.readFile(REMOVED_FILE, (err, data) => {
 		if (err) {
-			console.log(err)
+            console.log(err);
 		} else {
 			try {
-				REMOVED = JSON.parse(data)
-				console.log("Loaded removed quotes: " + REMOVED.length)
+                REMOVED = JSON.parse(data);
+                console.log("Loaded removed quotes: " + REMOVED.length);
 			} catch (e) {
-				REMOVED = []
-				console.log("No removed quotes found")
+                REMOVED = [];
+                console.log("No removed quotes found");
 			}
 		}
 	})
 }
 
 function getInsult() {
-	return INSULTS[random.int(0, INSULTS.length - 1)]
+    return INSULTS[random.int(0, INSULTS.length - 1)];
 }
 
 function parseNumber(num, m) {
-	num = parseInt(num, 10)
+    num = parseInt(num, 10);
 	if (isNaN(num)) {
-		m.reply(getInsult() + " That wasn't a number.").catch(console.error)
-		return -1
+        m.reply(getInsult() + " That wasn't a number.").catch(console.error);
+        return -1;
 	}
 	if (num <= 0) {
-		m.reply(getInsult() + " Give a number greater than zero.").catch(console.error)
-		return -1
+        m.reply(getInsult() + " Give a number greater than zero.").catch(console.error);
+        return -1;
 	}
-	return num
+    return num;
 }
 
 function parseQuoteSyntax(m, mess) {
-    console.log("mess: \"" + mess + "\"")
-    let splitMess = mess.split(" ")
-    console.log("splitMess.length: " + splitMess.length)
+    let splitMess = mess.split(" ");
 
 	// If there's nothing after the first @ or !q, must be requesting a random quote
     if (!mess) {
 
 		if (QUOTES.length == 0) {
-			console.log("ERROR: No quotes found")
-			m.reply("No quotes found.").catch(console.error)
+            console.log("ERROR: No quotes found");
+            m.reply("No quotes found.").catch(console.error);
 		} else {
-			let n = random.int(0, QUOTES.length - 1)
-			m.reply("#" + (n + 1) + ": " + QUOTES[n]).catch(console.error)
+            let n = random.int(0, QUOTES.length - 1);
+            m.reply("#" + (n + 1) + ": " + QUOTES[n]).catch(console.error);
 		}
 	// If there's only one thing after the command, find that numbered quote
     } else if (splitMess.length == 1) {
 
-        let num = parseNumber(mess, m) - 1
+        let num = parseNumber(mess, m) - 1;
         if (num >= QUOTES.length) {
-            m.reply(getInsult() + " Quote #" + num + " doesn't exist.").catch(console.error)
+            m.reply(getInsult() + " Quote #" + num + " doesn't exist.").catch(console.error);
             return
         }
-		if (num < 0) return
-		m.reply("#" + (num + 1) + ": " + QUOTES[num]).catch(console.error)
+        if (num < 0) return;
+        m.reply("#" + (num + 1) + ": " + QUOTES[num]).catch(console.error);
 
 	// Else it must be a quote
     } else {
-        QUOTES.push(mess)
-		saveFile()
+        QUOTES.push(mess);
+        saveFile();
 
 		// Find the quotes channel based on the ID
-		let quotesChannel = m.guild.channels.resolve(QUOTES_CHANNEL_ID)
+        let quotesChannel = m.guild.channels.resolve(QUOTES_CHANNEL_ID);
 		// for (let c in m.guild.channels) if (c.id === QUOTES_CHANNEL_ID) quotesChannel = c
 
 		if (quotesChannel) {
-			quotesChannel.send("#" + QUOTES.length + ": " + quote).catch(console.error)
+            quotesChannel.send("#" + QUOTES.length + ": " + quote).catch(console.error);
 		} else {
-			m.reply("Couldn't find quotes channel (ID: " + QUOTES_CHANNEL_ID + ").").catch(console.error)
-			console.log("ERROR: Couldn't find quotesChannel")
+            m.reply("Couldn't find quotes channel (ID: " + QUOTES_CHANNEL_ID + ").").catch(console.error);
+            console.log("ERROR: Couldn't find quotesChannel");
 		}
-		m.delete().catch(console.error)
-		m.reply("#" + QUOTES.length + " added.").then(msg => msg.delete({ timeout: ERROR_TIME })).catch(console.error)
+        m.delete().catch(console.error);
+        m.reply("#" + QUOTES.length + " added.").then(msg => msg.delete({ timeout: ERROR_TIME })).catch(console.error);
 	}
 }
 
 client.on("ready", () => {
-	console.log("Logged in as " + client.user.tag + "!")
+    console.log("Logged in as " + client.user.tag);
 })
 
 client.on("message", m => {
-    var mess = m.content;
+    // Ignore the bot's own messages
     if (m.author.id == BOT_ID) return;
 
+    // Capture the user's message
+    var mess = m.content;
     // Filter out non-standard quotation marks
     mess = mess.replaceAll("“","\"");
 
@@ -287,6 +286,6 @@ INSULTS.push("Everyone knows the only thing you've fucked is your car exhaust.")
 INSULTS.push("The last thing I want is a dialogue with this cold slice of leftover meatloaf.")
 INSULTS.push("You're the thing you pull out of the sink drain that the disposal couldn't grind up.")
 
-startBot()
+startBot();
 
 // https://discordapp.com/oauth2/authorize?&client_id=622290044287188993&scope=bot&permissions=75776
