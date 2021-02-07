@@ -36,11 +36,40 @@ function startBot() {
 
 let COMMANDS = []
 
+// Quote command
 COMMANDS.push({
     aliases: ["quote", "q", "addquote", "add quote", "quote add", "create"],
-    usage: ["!quote", "!quote <message_to_quote>", "!quote <quote_number>"],
+    usage: ["!quote",
+            "!quote <message_to_quote>",
+            "!quote <quote_number>"],
     func: (m, mess) => {
-        console.log("quote")
+        parseQuoteSyntax(m, mess)
+    }
+})
+// Remove command
+COMMANDS.push({
+    aliases: ["remove", "delete", "quoteremove", "quote remove", "quotedelete", "quote delete"],
+    usage: ["!remove <quote_number>"],
+    func: (m, mess) => {
+        let splitMess = mess.split(" ")
+        if (splitMess.length == 1) {
+
+            let num = parseNumber(splitMess[1], m) - 1
+            if (num >= QUOTES.length) {
+                m.reply(getInsult() + "Quote #" + num + " doesn't exist.").catch(console.error)
+                return
+            }
+            if (num < 0) return
+            REMOVED.push(QUOTES[num])
+            QUOTES.splice(num, 1) // Delete the quote from the array
+            saveFile() // Save the new array to the file
+
+            m.delete().catch(console.error)
+            m.reply("#" + (num + 1) + " removed.").then(msg => msg.delete({ timeout: ERROR_TIME })).catch(console.error)
+
+        } else {
+            m.reply(getInsult() + " I only expected a single number afterwards.").catch(console.error)
+        }
     }
 })
 
@@ -112,9 +141,10 @@ function parseNumber(num, m) {
 }
 
 function parseQuoteSyntax(m, mess) {
-	let splitMess = mess.split(" ")
+    let splitMess = mess.split(" ")
+
 	// If there's nothing after the first @ or !q, must be requesting a random quote
-	if (splitMess.length == 1) {
+    if (splitMess.length == 0) {
 
 		if (QUOTES.length == 0) {
 			console.log("ERROR: No quotes found")
@@ -124,23 +154,19 @@ function parseQuoteSyntax(m, mess) {
 			m.reply("#" + (n + 1) + ": " + QUOTES[n]).catch(console.error)
 		}
 	// If there's only one thing after the command, find that numbered quote
-	} else if (splitMess.length == 2) {
+    } else if (splitMess.length == 1) {
 
-		let num = parseNumber(splitMess[1], m) - 1
-		if (num >= QUOTES.length) {
-        	        m.reply(getInsult() + "Quote #" + num + " doesn't exist.").catch(console.error)
-        	        return
-        	}
+        let num = parseNumber(splitMess[0], m) - 1
+        if (num >= QUOTES.length) {
+            m.reply(getInsult() + " Quote #" + num + " doesn't exist.").catch(console.error)
+            return
+        }
 		if (num < 0) return
 		m.reply("#" + (num + 1) + ": " + QUOTES[num]).catch(console.error)
 
 	// Else it must be a quote
-	} else {
-		// puts all the quote into one big string
-		let quote = ""
-		for (let i = 1; i < splitMess.length; i++) quote += splitMess[i] + (i != splitMess.length -1 ? " " : "")
-
-		QUOTES.push(quote)
+    } else {
+        QUOTES.push(mess)
 		saveFile()
 
 		// Find the quotes channel based on the ID
@@ -163,16 +189,18 @@ client.on("ready", () => {
 })
 
 client.on("message", m => {
-	var mess = m.content
-	if (m.author.id == BOT_ID) return;
-    mess = mess.replaceAll("“","\"")
+    var mess = m.content;
+    if (m.author.id == BOT_ID) return;
+
+    // Filter out non-standard quotation marks
+    mess = mess.replaceAll("“","\"");
 
     // Return if there's no prefix (and check that it's not something like "!!!!")
     if (mess.charAt(0) != PREFIX || mess.charAt(1) == PREFIX) {
-        return
+        return;
     }
     // Remove the prefix
-    mess = mess.replace(PREFIX, "")
+    mess = mess.replace(PREFIX, "");
 
     // Test the input against all prefixes for all commands
     for (c in COMMANDS) {
@@ -182,12 +210,22 @@ client.on("message", m => {
             // If the message begins with the alias
             if (mess.indexOf(cAlias) == 0) {
                 // This is the command!
-                // remove the alias from mess
-                mess = mess.replace(cAlias, "")
+
+                // Remove the alias from the start of mess
+                mess = mess.replace(cAlias, "");
+
+                // Remmove any spaces at the beginning and end of mess
+                mess = mess.trim();
+
                 // Execute the command
                 command.func(m, mess);
+                return
             }
         }
+    }
+
+    if (m.mentions.users.has(client.user.id)) {
+        parseQuoteSyntax(m, mess)
     }
 
     return
@@ -256,9 +294,7 @@ client.on("message", m => {
 				m.reply("#" + (matches.bestMatchIndex + 1) + ": " + result).catch(console.error)
 			}
 
-		} else if (mess.indexOf("q") == 1 || mess.indexOf("quoteadd") == 1 || mess.indexOf("addquote") == 1 || mess.indexOf("quote") == 1) {
-			parseQuoteSyntax(m, mess)
-		} else {
+        } else {
 			m.reply(getInsult() + " Use `!help`.").catch(console.error)
 		}
 	// if bot is mentioned
