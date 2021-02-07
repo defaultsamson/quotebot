@@ -72,6 +72,44 @@ COMMANDS.push({
         }
     }
 })
+// Search quote command
+COMMANDS.push({
+    aliases: ["search", "s", "find", "f", "quote search", "quote find", "findquote", "quotefind", "searchquote"],
+    usage: ["!search <message_to_search>"],
+    func: (m, mess) => {
+        if (QUOTES.length == 0) {
+            console.log("ERROR: No quotes found")
+            m.reply("No quotes found.").catch(console.error)
+        } else {
+            var matches = sim.findBestMatch(mess, QUOTES)
+            var result = matches.bestMatch.target
+            m.reply("#" + (matches.bestMatchIndex + 1) + ": " + result).catch(console.error)
+        }
+    }
+})
+// Roll command
+COMMANDS.push({
+    aliases: ["roll"],
+    usage: ["!roll",
+            "!roll <number>",
+            "!roll [number] [number] ..."],
+    func: (m, mess) => {
+        let splitMess = mess.split(" ");
+        // If nothing is given, roll a D20
+        if (splitMess.length == 0) {
+            m.reply(random.int(1, 20) + "/20");
+        } else {
+            let replyMess = "";
+            for (i in splitMess) {
+                let num = parseNumber(splitMess[i], m)
+                if (num < 0) return
+                replyMess += random.int(1, num) + "/" + num + " "
+            }
+            m.reply(replyMess)
+        }
+    }
+})
+
 
 function saveFile() {
 	fs.writeFile(QUOTES_FILE, JSON.stringify(QUOTES), (err) => {
@@ -141,10 +179,12 @@ function parseNumber(num, m) {
 }
 
 function parseQuoteSyntax(m, mess) {
+    console.log("mess: \"" + mess + "\"")
     let splitMess = mess.split(" ")
+    console.log("splitMess.length: " + splitMess.length)
 
 	// If there's nothing after the first @ or !q, must be requesting a random quote
-    if (splitMess.length == 0) {
+    if (!mess) {
 
 		if (QUOTES.length == 0) {
 			console.log("ERROR: No quotes found")
@@ -156,7 +196,7 @@ function parseQuoteSyntax(m, mess) {
 	// If there's only one thing after the command, find that numbered quote
     } else if (splitMess.length == 1) {
 
-        let num = parseNumber(splitMess[0], m) - 1
+        let num = parseNumber(mess, m) - 1
         if (num >= QUOTES.length) {
             m.reply(getInsult() + " Quote #" + num + " doesn't exist.").catch(console.error)
             return
@@ -195,6 +235,12 @@ client.on("message", m => {
     // Filter out non-standard quotation marks
     mess = mess.replaceAll("“","\"");
 
+    // If the bot is @'d, treat it as quote syntax
+    if (m.mentions.users.has(client.user.id)) {
+        let prefix = mess.split(" ")[0];
+        parseQuoteSyntax(m, mess.replace(prefix, " ").trim());
+    }
+
     // Return if there's no prefix (and check that it's not something like "!!!!")
     if (mess.charAt(0) != PREFIX || mess.charAt(1) == PREFIX) {
         return;
@@ -209,98 +255,16 @@ client.on("message", m => {
             let cAlias = command.aliases[a];
             // If the message begins with the alias
             if (mess.indexOf(cAlias) == 0) {
-                // This is the command!
+                // Execute the command
 
                 // Remove the alias from the start of mess
-                mess = mess.replace(cAlias, "");
-
                 // Remmove any spaces at the beginning and end of mess
-                mess = mess.trim();
-
-                // Execute the command
-                command.func(m, mess);
-                return
+                command.func(m, mess.replace(cAlias, "").trim());
+                return;
             }
         }
     }
-
-    if (m.mentions.users.has(client.user.id)) {
-        parseQuoteSyntax(m, mess)
-    }
-
-    return
-
-	// If there's an exclaimation point, we know it's a command
-	if (mess.includes("uwu")) {
-		m.reply("<@" + EMILY_ID + "> uwu")
-
-	} else if (mess.charAt(0) == '!' && mess.charAt(1) != '!') { //mess.indexOf("!") == 0) {
-		if (mess.indexOf("h") == 1 || mess.indexOf("help") == 1) {
-			m.reply("You can use `!q`, `!quote` or you can @me.\n" +
-				"`!q <message>` to add a new quote\n" +
-				"`!q <number>` to get a specific quote\n" +
-				"`!q` to get a random quote\n" +
-				"`!find <message>` to search for a quote with a similar `message`\n" +
-				"`!remove <number>` to remove a quote" +
-				"`!roll [number] [number] ...` to roll any 'number' sided dice. Give no numbers to roll a D20."
-				).catch(console.error)
-
-		} else if (mess.indexOf("roll") == 1) {
-			let splitMess = mess.split(" ")
-			if (splitMess.length <= 1) {
-				m.reply(random.int(1, 20))
-			} else {
-				let replyMess = ""
-				for (let i = 1; i < splitMess.length; i++) {
-					let num = parseNumber(splitMess[i], m)
-					if (num < 0) return
-					replyMess += random.int(1, num) + " "
-				}
-				m.reply(replyMess)
-			}
-		} else if (mess.indexOf("remove") == 1 || mess.indexOf("quoteremove") == 1 || mess.indexOf("removequote") == 1) {
-
-			let splitMess = mess.split(" ")
-			if (splitMess.length == 2) {
-
-				let num = parseNumber(splitMess[1], m) - 1
-				if (num >= QUOTES.length) {
-       	                		m.reply(getInsult() + "Quote #" + num + " doesn't exist.").catch(console.error)
-       	                		return
-	                	}
-				if (num < 0) return
-				REMOVED.push(QUOTES[num])
-				QUOTES.splice(num, 1) // Delete the quote from the array
-				saveFile() // Save the new array to the file
-
-				m.delete().catch(console.error)
-				m.reply("#" + (num + 1) + " removed.").then(msg => msg.delete({ timeout: ERROR_TIME })).catch(console.error)
-
-			} else {
-				m.reply(getInsult() + " I only expected a single number afterwards.").catch(console.error)
-			}
-
-		} else if (mess.indexOf("f") == 1 || mess.indexOf("find") == 1 || mess.indexOf("s") == 1 || mess.indexOf("search") == 1) {
-
-			if (QUOTES.length == 0) {
-				console.log("ERROR: No quotes found")
-				m.reply("No quotes found.").catch(console.error)
-			} else {
-				let splitMess = mess.split(" ")
-				let quote = ""
-				for (let i = 1; i < splitMess.length; i++) quote += splitMess[i] + (i != splitMess.length -1 ? " " : "")
-				var matches = sim.findBestMatch(quote, QUOTES)
-				var result = matches.bestMatch.target
-				m.reply("#" + (matches.bestMatchIndex + 1) + ": " + result).catch(console.error)
-			}
-
-        } else {
-			m.reply(getInsult() + " Use `!help`.").catch(console.error)
-		}
-	// if bot is mentioned
-	} else if (m.mentions.users.has(client.user.id)) {
-		parseQuoteSyntax(m, mess)
-	}
+    return;
 })
 
 INSULTS.push("What the fuck did you just fucking say to me, you little bitch?")
