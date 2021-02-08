@@ -210,7 +210,7 @@ function parseQuoteSyntax(m, mess) {
 
         let num = parseNumber(splitMess[0], m) - 1;
         if (num >= QUOTES.length) {
-            m.reply(getInsult() + " Quote #" + num + " doesn't exist.").catch(console.error);
+            m.reply(getInsult() + " Quote #" + (num + 1) + " doesn't exist.").catch(console.error);
             return;
         }
         if (num < 0) return;
