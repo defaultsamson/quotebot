@@ -309,12 +309,14 @@ client.on("message", m => {
     mess = mess.replaceAll("“","\"");
 
     // If the bot is @'d, treat it as quote syntax
+    /* note: removed bc I don't want this behaviour anymore
     if (m.mentions.users.has(client.user.id)) {
         let prefix = mess.split(" ")[0];
         parseQuoteSyntax(m, mess.replace(prefix, " ").trim());
     }
+    */
 
-    // Return if there's no prefix (and check that it's not something like "!!!!")
+    // Return if there's no prefix (or if it's not something like "!!!!")
     if (mess.charAt(0) !== PREFIX || mess.charAt(1) === PREFIX) {
         return;
     }
