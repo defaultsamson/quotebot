@@ -27,7 +27,7 @@ let COMMANDS = [];
 
 // Quote command
 COMMANDS.push({
-    aliases: ["quote", "q", "addquote", "add quote", "quote add", "create"],
+    aliases: ["quote", "q", "addquote", "quoteadd", "create"],
     usage: ["!quote",
             "!quote <message_to_quote>",
             "!quote <quote_number>"],
@@ -37,7 +37,7 @@ COMMANDS.push({
 });
 // Remove command
 COMMANDS.push({
-    aliases: ["remove", "delete", "quoteremove", "quote remove", "quotedelete", "quote delete"],
+    aliases: ["remove", "delete", "quoteremove", "removequote", "quotedelete", "deletequote"],
     usage: ["!remove <quote_number>"],
     func: (m, mess) => {
         let splitMess = mess.split(" ");
@@ -69,7 +69,7 @@ COMMANDS.push({
 });
 // Search quote command
 COMMANDS.push({
-    aliases: ["search", "s", "find", "f", "quote search", "quote find", "findquote", "quotefind", "searchquote"],
+    aliases: ["search", "s", "find", "f", "findquote", "quotefind", "searchquote"],
     usage: ["!search <message_to_search>"],
     func: (m, mess) => {
         if (QUOTES.length === 0) {
@@ -111,6 +111,24 @@ COMMANDS.push({
     func: (m, mess) => {
         QUOTES = loadQuotes();
         m.reply("Reloaded quotes.");
+    }
+});
+// Setting quotes channel command
+COMMANDS.push({
+    aliases: ["setchannel", "quoteschannel", "channel", "channelset"],
+    admin: true,
+    usage: ["!setchannel <channel_id>",
+            "!setchannel <channel_name>"],
+    func: (m, mess) => {
+                      console.log("asdgoauisydtgaoiusdygbaisudyhygavbsoduyagsbdouaysdgvboiauytybg");
+                      /** TODO test if the message is a valid channel
+        if (mess) {
+
+        }*/
+
+        SETTINGS.quotesChannel = mess;
+        saveSettings();
+        m.reply("Set channel.");
     }
 });
 
@@ -270,6 +288,7 @@ client.on("message", m => {
             // If the message begins with the alias
             if (mess.indexOf(cAlias) === 0) {
                 // Execute the command
+                          console.log("executing: " + cAlias)
 
                 // Remove the alias from the start of mess
                 // Remmove any spaces at the beginning and end of mess
