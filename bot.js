@@ -1,33 +1,26 @@
-const Discord = require("discord.js")
-const client = new Discord.Client()
-const fs = require("fs")
+const Discord = require("discord.js");
+const client = new Discord.Client();
+const fs = require("fs");
 const sim = require('string-similarity');
-const random = require('random')
+const random = require('random');
 
-const PREFIX = "!"
+const PREFIX = "!";
+const ERROR_TIME = 20000;
 
-const QUOTES_FILE = __dirname + "/quotes.json"
-const PRETTY_QUOTES_FILE = __dirname + "/quotes.txt"
-const REMOVED_FILE = __dirname + "/removed.json"
-const TOKEN_FILE = __dirname + "/token.txt"
-const QUOTES_CHANNEL_ID = "622277602782085120"
-const ERROR_TIME = 20000
+let SETTINGS;
+const SETTINGS_FILE = __dirname + "/settings.json";
 
-let QUOTES = [];
-let INSULTS = [];
+let QUOTES;
+const QUOTES_FILE = __dirname + "/quotes.json";
+const PRETTY_QUOTES_FILE = __dirname + "/quotes.txt";
+const REMOVED_FILE = __dirname + "/removed.json";
 
 function startBot() {
+    SETTINGS = loadSettings();
     QUOTES = loadQuotes();
 
-    // Starts client from token file
-    fs.readFile(TOKEN_FILE, (err, data) => {
-        if (err) {
-            console.log(err);
-            return;
-        } else {
-            client.login(JSON.parse(data));
-        }
-    })
+    // Starts client from token
+    client.login(SETTINGS.token);
 }
 
 let COMMANDS = [];
@@ -98,7 +91,7 @@ COMMANDS.push({
     func: (m, mess) => {
         let splitMess = mess.split(" ");
         // If nothing is given, roll a D20
-        if (splitMess.length === 0) {
+        if (!mess) {
             m.reply(random.int(1, 20) + "/20");
         } else {
             let replyMess = "";
@@ -121,52 +114,53 @@ COMMANDS.push({
     }
 });
 
+function loadSettings() {
+    try {
+        let toRet = JSON.parse(fs.readFileSync(SETTINGS_FILE));
+        console.log("Loaded settings");
+        return toRet;
+    } catch (err) {
+        console.log("No settings found");
+        return {};
+    }
+}
+
+function saveSettings() {
+    fs.writeFile(SETTINGS_FILE, JSON.stringify(SETTINGS, null, 4), (err) => {});
+}
+
 function loadRemoved() {
-    let removedQuotes = [];
-    fs.readFile(REMOVED_FILE, (err, data) => {
-        if (err) {
-            console.log(err);
-        } else {
-            try {
-                removedQuotes = JSON.parse(data);
-                console.log("Loaded removed quotes: " + removedQuotes.length);
-            } catch (e) {
-                console.log("No removed quotes found");
-            }
-        }
-    })
-    return removedQuotes;
+    try {
+        let toRet = JSON.parse(fs.readFileSync(REMOVED_FILE));
+        console.log("Loaded removed quotes: " + toRet.length);
+        return toRet;
+    } catch (err) {
+        console.log("No removed quotes found");
+        return [];
+    }
 }
 
 function saveRemoved(removedQuotes) {
-    fs.writeFile(REMOVED_FILE, JSON.stringify(removedQuotes), (err) => {})
+    fs.writeFile(REMOVED_FILE, JSON.stringify(removedQuotes, null, 4), (err) => {});
 }
 
 function loadQuotes() {
-    let quotes = [];
-    fs.readFile(QUOTES_FILE, (err, data) => {
-        if (err) {
-            console.log(err);
-        } else {
-            try {
-                quotes = JSON.parse(data);
-                console.log("Loaded quotes: " + quotes.length);
-            } catch (e) {
-                console.log("No quotes found");
-            }
-        }
-    });
-    return quotes;
+    try {
+        let toRet = JSON.parse(fs.readFileSync(QUOTES_FILE));
+        console.log("Loaded quotes: " + toRet.length);
+        return toRet;
+    } catch (err) {
+        console.log("No quotes found");
+        return [];
+    }
 }
 
 function saveQuotes() {
-	fs.writeFile(QUOTES_FILE, JSON.stringify(QUOTES), (err) => {
-		if (err) {
-            console.log(err);
-		} else {
-            // console.log('File written!');
-		}
-	})
+    try {
+        fs.writeFileSync(QUOTES_FILE, JSON.stringify(QUOTES, null, 4));
+    } catch (err) {
+        console.log(err);
+    }
 
     let tempquotes = [];
 	for (i in QUOTES) {
@@ -174,7 +168,11 @@ function saveQuotes() {
         tempquotes.push("#" + num + ": " + QUOTES[i]);
 	}
 
-    fs.writeFile(PRETTY_QUOTES_FILE, tempquotes.join("\n"), (err) => {});
+    try {
+        fs.writeFileSync(PRETTY_QUOTES_FILE, tempquotes.join("\n"));
+    } catch (err) {
+        console.log(err);
+    }
 }
 
 function getInsult() {
@@ -224,13 +222,13 @@ function parseQuoteSyntax(m, mess) {
         saveQuotes();
 
 		// Find the quotes channel based on the ID
-        let quotesChannel = m.guild.channels.resolve(QUOTES_CHANNEL_ID);
-		// for (let c in m.guild.channels) if (c.id === QUOTES_CHANNEL_ID) quotesChannel = c
+        let quotesChannel = m.guild.channels.resolve(SETTINGS.quotesChannel);
 
+        // If there's a quotes channel, send the message there
 		if (quotesChannel) {
-            quotesChannel.send("#" + QUOTES.length + ": " + quote).catch(console.error);
+            quotesChannel.send("#" + QUOTES.length + ": " + mess).catch(console.error);
 		} else {
-            m.reply("Couldn't find quotes channel (ID: " + QUOTES_CHANNEL_ID + ").").catch(console.error);
+            m.reply("Couldn't find quotes channel (ID: " + SETTINGS.quotesChannel + ").").catch(console.error);
             console.log("ERROR: Couldn't find quotesChannel");
 		}
         m.delete().catch(console.error);
@@ -283,6 +281,7 @@ client.on("message", m => {
     return;
 })
 
+let INSULTS = [];
 INSULTS.push("What the fuck did you just fucking say to me, you little bitch?")
 INSULTS.push("I hope someone forces you to shit out lego.")
 INSULTS.push("I hope your kneecaps get stolen by an elf.")
