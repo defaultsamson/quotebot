@@ -25,12 +25,29 @@ function startBot() {
 
 let COMMANDS = [];
 
+// Help command
+COMMANDS.push({
+    aliases: ["help"],
+    usage: [""],
+    func: (m, mess) => {
+        let message = "```\n";
+        for (c in COMMANDS) {
+            let com = COMMANDS[c];
+            for (u in com.usage) {
+                // Builds the output for each command's usage
+                message += PREFIX + com.aliases[0] + " " + com.usage[u] + "\n";
+            }
+        }
+        message += "```";
+        m.reply(message);
+    }
+});
 // Quote command
 COMMANDS.push({
     aliases: ["quote", "q", "addquote", "quoteadd", "create"],
-    usage: ["!quote",
-            "!quote <message_to_quote>",
-            "!quote <quote_number>"],
+    usage: ["",
+            "<message_to_quote>",
+            "<quote_number>"],
     func: (m, mess) => {
         parseQuoteSyntax(m, mess);
     }
@@ -38,7 +55,7 @@ COMMANDS.push({
 // Remove command
 COMMANDS.push({
     aliases: ["remove", "delete", "quoteremove", "removequote", "quotedelete", "deletequote"],
-    usage: ["!remove <quote_number>"],
+    usage: ["<quote_number>"],
     func: (m, mess) => {
         let splitMess = mess.split(" ");
         if (splitMess.length === 1) {
@@ -70,7 +87,7 @@ COMMANDS.push({
 // Search quote command
 COMMANDS.push({
     aliases: ["search", "s", "find", "f", "findquote", "quotefind", "searchquote"],
-    usage: ["!search <message_to_search>"],
+    usage: ["<message_to_search>"],
     func: (m, mess) => {
         if (QUOTES.length === 0) {
             console.log("ERROR: No quotes found");
@@ -85,9 +102,9 @@ COMMANDS.push({
 // Roll command
 COMMANDS.push({
     aliases: ["roll"],
-    usage: ["!roll",
-            "!roll <number>",
-            "!roll [number] [number] ..."],
+    usage: ["",
+            "<number>",
+            "[number] [number] ..."],
     func: (m, mess) => {
         let splitMess = mess.split(" ");
         // If nothing is given, roll a D20
@@ -107,7 +124,7 @@ COMMANDS.push({
 // Reload command
 COMMANDS.push({
     aliases: ["reload"],
-    usage: ["!reload"],
+    usage: [""],
     func: (m, mess) => {
         QUOTES = loadQuotes();
         m.reply("Reloaded quotes.");
@@ -117,8 +134,8 @@ COMMANDS.push({
 COMMANDS.push({
     aliases: ["setchannel", "quoteschannel", "channel", "channelset"],
     admin: true,
-    usage: ["!setchannel <channel_id>",
-            "!setchannel <channel_name>"],
+    usage: ["<channel_id>",
+            "<channel_name>"],
     func: (m, mess) => {
                       console.log("asdgoauisydtgaoiusdygbaisudyhygavbsoduyagsbdouaysdgvboiauytybg");
                       /** TODO test if the message is a valid channel
@@ -219,10 +236,6 @@ function saveQuotes() {
     } catch (err) {
         console.log(err);
     }
-}
-
-function getInsult() {
-    return INSULTS[random.int(0, INSULTS.length - 1)];
 }
 
 function parseNumber(num, m) {
@@ -346,6 +359,10 @@ INSULTS.push("You have the personality of mayonnaise in a ketchup bottle.")
 INSULTS.push("Everyone knows the only thing you've fucked is your car exhaust.")
 INSULTS.push("The last thing I want is a dialogue with this cold slice of leftover meatloaf.")
 INSULTS.push("You're the thing you pull out of the sink drain that the disposal couldn't grind up.")
+
+function getInsult() {
+    return INSULTS[random.int(0, INSULTS.length - 1)];
+}
 
 startBot();
 
