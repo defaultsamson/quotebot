@@ -132,6 +132,34 @@ COMMANDS.push({
     }
 });
 
+// Stores the command aliases for all commands
+let COMMAND_ALIASES = [];
+for (c in COMMANDS) {
+    let com = COMMANDS[c];
+    for (i in com.aliases) {
+        COMMAND_ALIASES.push(com.aliases[i]);
+    }
+}
+
+function findSimilarAlias(comm) {
+    // Search through the aliases of every command to find the best fitting one
+    var matches = sim.findBestMatch(comm, COMMAND_ALIASES);
+    // console.log(JSON.stringify(matches, null, 4))
+    return matches.bestMatch;
+}
+
+function commandFromAlias(cAlias) {
+    for (c in COMMANDS) {
+        let com = COMMANDS[c];
+        for (i in com.aliases) {
+            if (com.aliases[i] === cAlias) {
+                return com;
+            }
+        }
+    }
+    return null;
+}
+
 function loadSettings() {
     try {
         let toRet = JSON.parse(fs.readFileSync(SETTINGS_FILE));
@@ -262,8 +290,8 @@ client.on("message", m => {
     // Ignore the bot's own messages
     if (m.author.id === client.user.id) return;
 
-    // Capture the user's message
-    var mess = m.content;
+    // Capture the user's (whitespace-trimmed) message
+    var mess = m.content.trim();
     // Filter out non-standard quotation marks
     mess = mess.replaceAll("“","\"");
 
@@ -280,24 +308,22 @@ client.on("message", m => {
     // Remove the prefix
     mess = mess.replace(PREFIX, "");
 
-    // Test the input against all prefixes for all commands
-    for (c in COMMANDS) {
-        let command = COMMANDS[c];
-        for (a in command.aliases) {
-            let cAlias = command.aliases[a];
-            // If the message begins with the alias
-            if (mess.indexOf(cAlias) === 0) {
-                // Execute the command
-                          console.log("executing: " + cAlias)
-
-                // Remove the alias from the start of mess
-                // Remmove any spaces at the beginning and end of mess
-                command.func(m, mess.replace(cAlias, "").trim());
-                return;
-            }
-        }
+    // Get the command with the best matching alias
+    let originalAlias = mess.split(" ")[0];
+    let bestMatchAlias = findSimilarAlias(originalAlias);
+    // if above 50% similarity, assume that the best alias is the correct one
+    if (bestMatchAlias.rating > 0.50) {
+        let command = commandFromAlias(bestMatchAlias.target);
+        // Remove the alias from the start of mess
+        // Remmove any spaces at the beginning and end of mess
+        command.func(m, mess.replace(originalAlias, "").trim());
     }
-    return;
+    // If <= 50% but above 25% similarity, suggest the change
+    else if (bestMatchAlias.rating > 0.25) {
+        m.reply("You sent `" + PREFIX + originalAlias + "`, did you mean `" + PREFIX + bestMatchAlias.target + "`?\nUse `" + PREFIX + "help` for more commands.");
+    } else {
+        m.reply(getInsult() + "\nUse `" + PREFIX + "help` for more commands.");
+    }
 })
 
 let INSULTS = [];
