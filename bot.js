@@ -84,7 +84,10 @@ COMMANDS.push({
 
         // Else it must be a quote
         } else {
-            QUOTES.push(mess);
+            QUOTES.push({
+                mess: mess,
+                date: (new Date()).now(),
+            });
             saveQuotes();
 
             // Find the quotes channel based on the ID
