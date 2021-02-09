@@ -60,9 +60,48 @@ COMMANDS.push({
             "<message_to_quote>",
             "<quote_number>"],
     func: (m, mess) => {
-        parseQuoteSyntax(m, mess);
+        let splitMess = mess.split(" ");
+        // If there's nothing after the first @ or !q, must be requesting a random quote
+        if (!mess) {
+            if (QUOTES.length === 0) {
+                m.reply("No quotes found.").catch(console.error);
+                m.reply("Consider using `" + PREFIX + "quote` to add some.").catch(console.error);
+            } else {
+                let n = random.int(0, QUOTES.length - 1);
+                m.reply("#" + (n + 1) + ": " + QUOTES[n]).catch(console.error);
+            }
+        // If there's only one thing after the command, find that numbered quote
+        } else if (splitMess.length === 1) {
+
+            let num = parseNumber(splitMess[0], m) - 1;
+            if (num >= QUOTES.length) {
+                m.reply(getInsult() + " Quote #" + (num + 1) + " doesn't exist.").catch(console.error);
+                return;
+            }
+            if (num < 0) return;
+            m.reply("#" + (num + 1) + ": " + QUOTES[num]).catch(console.error);
+
+        // Else it must be a quote
+        } else {
+            QUOTES.push(mess);
+            saveQuotes();
+
+            // Find the quotes channel based on the ID
+            let quotesChannel = m.guild.channels.resolve(SETTINGS.quotesChannel);
+
+            // If there's a quotes channel, send the message there
+            if (quotesChannel) {
+                quotesChannel.send("#" + QUOTES.length + ": " + mess).catch(console.error);
+            } else {
+                error("Couldn't find quotes channel (ID: " + SETTINGS.quotesChannel + ").");
+                m.reply("Consider using `" + PREFIX + "setchannel` to set a quotes channel.").catch(console.error);
+            }
+            m.delete().catch(console.error);
+            m.reply("#" + QUOTES.length + " added.").then(msg => msg.delete({ timeout: ERROR_TIME })).catch(console.error);
+        }
     }
 });
+
 // Remove command
 // Removes a quote from the database
 COMMANDS.push({
@@ -263,49 +302,6 @@ function parseNumber(num, m) {
         return -1;
 	}
     return num;
-}
-
-function parseQuoteSyntax(m, mess) {
-    let splitMess = mess.split(" ");
-
-	// If there's nothing after the first @ or !q, must be requesting a random quote
-    if (!mess) {
-        if (QUOTES.length === 0) {
-            m.reply("No quotes found.").catch(console.error);
-            m.reply("Consider using `" + PREFIX + "quote` to add some.").catch(console.error);
-		} else {
-            let n = random.int(0, QUOTES.length - 1);
-            m.reply("#" + (n + 1) + ": " + QUOTES[n]).catch(console.error);
-		}
-	// If there's only one thing after the command, find that numbered quote
-    } else if (splitMess.length === 1) {
-
-        let num = parseNumber(splitMess[0], m) - 1;
-        if (num >= QUOTES.length) {
-            m.reply(getInsult() + " Quote #" + (num + 1) + " doesn't exist.").catch(console.error);
-            return;
-        }
-        if (num < 0) return;
-        m.reply("#" + (num + 1) + ": " + QUOTES[num]).catch(console.error);
-
-	// Else it must be a quote
-    } else {
-        QUOTES.push(mess);
-        saveQuotes();
-
-		// Find the quotes channel based on the ID
-        let quotesChannel = m.guild.channels.resolve(SETTINGS.quotesChannel);
-
-        // If there's a quotes channel, send the message there
-		if (quotesChannel) {
-            quotesChannel.send("#" + QUOTES.length + ": " + mess).catch(console.error);
-		} else {
-            error("Couldn't find quotes channel (ID: " + SETTINGS.quotesChannel + ").");
-            m.reply("Consider using `" + PREFIX + "setchannel` to set a quotes channel.").catch(console.error);
-		}
-        m.delete().catch(console.error);
-        m.reply("#" + QUOTES.length + " added.").then(msg => msg.delete({ timeout: ERROR_TIME })).catch(console.error);
-	}
 }
 
 client.on("ready", () => {
