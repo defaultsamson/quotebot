@@ -70,6 +70,7 @@ COMMANDS.push({
                 let n = random.int(0, QUOTES.length - 1);
                 m.reply("#" + (n + 1) + ": " + QUOTES[n]).catch(console.error);
             }
+
         // If there's only one thing after the command, find that numbered quote
         } else if (splitMess.length === 1) {
 
@@ -111,20 +112,22 @@ COMMANDS.push({
         let splitMess = mess.split(" ");
         if (splitMess.length === 1) {
 
+            // Parse the number given
             let num = parseNumber(splitMess[0], m) - 1;
             if (num >= QUOTES.length) {
                 m.reply(getInsult() + "Quote #" + num + " doesn't exist.").catch(console.error);
                 return;
             }
             if (num < 0) return;
+
             // Add the quote to the removed quotes list
             let removed = loadRemoved();
             removed.push(QUOTES[num]);
             saveRemoved(removed);
+
             // Remove the quote from the quotes list
             QUOTES.splice(num, 1); // Delete the quote from the array
             saveQuotes(); // Save the new array to the file
-
 
             // Delete the original message
             m.delete().catch(console.error);
@@ -338,8 +341,7 @@ client.on("message", m => {
     // if above 50% similarity, assume that the best alias is the correct one
     if (bestMatchAlias.rating > 0.50) {
         let command = commandFromAlias(bestMatchAlias.target);
-        // Remove the alias from the start of mess
-        // Remmove any spaces at the beginning and end of mess
+        // Remove the alias from the start of mess, as well as any spaces at the beginning and end of mess
         command.func(m, mess.replace(originalAlias, "").trim());
     }
     // If <= 50% but above 25% similarity, suggest the change
