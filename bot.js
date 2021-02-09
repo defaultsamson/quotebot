@@ -23,6 +23,15 @@ function startBot() {
     client.login(SETTINGS.token);
 }
 
+function log(mess) {
+    console.log(mess);
+}
+
+function error(m, err) {
+    console.error(err);
+    if (m) m.reply("ERROR\n```\n" + err + "\n```").catch(console.error);
+}
+
 let COMMANDS = [];
 
 // Help command
@@ -90,8 +99,7 @@ COMMANDS.push({
     usage: ["<message_to_search>"],
     func: (m, mess) => {
         if (QUOTES.length === 0) {
-            console.log("ERROR: No quotes found");
-            m.reply("No quotes found.").catch(console.error);
+            error(m, "ERROR: No quotes found");
         } else {
             var matches = sim.findBestMatch(mess, QUOTES);
             var result = matches.bestMatch.target;
@@ -137,8 +145,7 @@ COMMANDS.push({
     usage: ["<channel_id>",
             "<channel_name>"],
     func: (m, mess) => {
-                      console.log("asdgoauisydtgaoiusdygbaisudyhygavbsoduyagsbdouaysdgvboiauytybg");
-                      /** TODO test if the message is a valid channel
+        /** TODO test if the message is a valid channel
         if (mess) {
 
         }*/
@@ -161,7 +168,7 @@ for (c in COMMANDS) {
 function findSimilarAlias(comm) {
     // Search through the aliases of every command to find the best fitting one
     var matches = sim.findBestMatch(comm, COMMAND_ALIASES);
-    // console.log(JSON.stringify(matches, null, 4))
+    // log(JSON.stringify(matches, null, 4))
     return matches.bestMatch;
 }
 
@@ -180,10 +187,10 @@ function commandFromAlias(cAlias) {
 function loadSettings() {
     try {
         let toRet = JSON.parse(fs.readFileSync(SETTINGS_FILE));
-        console.log("Loaded settings");
+        log("Loaded settings");
         return toRet;
     } catch (err) {
-        console.log("No settings found");
+        error(err);
         return {};
     }
 }
@@ -195,10 +202,10 @@ function saveSettings() {
 function loadRemoved() {
     try {
         let toRet = JSON.parse(fs.readFileSync(REMOVED_FILE));
-        console.log("Loaded removed quotes: " + toRet.length);
+        log("Loaded removed quotes: " + toRet.length);
         return toRet;
     } catch (err) {
-        console.log("No removed quotes found");
+        error(err);
         return [];
     }
 }
@@ -210,10 +217,10 @@ function saveRemoved(removedQuotes) {
 function loadQuotes() {
     try {
         let toRet = JSON.parse(fs.readFileSync(QUOTES_FILE));
-        console.log("Loaded quotes: " + toRet.length);
+        log("Loaded quotes: " + toRet.length);
         return toRet;
     } catch (err) {
-        console.log("No quotes found");
+        error(err);
         return [];
     }
 }
@@ -222,7 +229,7 @@ function saveQuotes() {
     try {
         fs.writeFileSync(QUOTES_FILE, JSON.stringify(QUOTES, null, 4));
     } catch (err) {
-        console.log(err);
+        error(err);
     }
 
     let tempquotes = [];
@@ -234,7 +241,7 @@ function saveQuotes() {
     try {
         fs.writeFileSync(PRETTY_QUOTES_FILE, tempquotes.join("\n"));
     } catch (err) {
-        console.log(err);
+        error(err);
     }
 }
 
@@ -256,10 +263,9 @@ function parseQuoteSyntax(m, mess) {
 
 	// If there's nothing after the first @ or !q, must be requesting a random quote
     if (!mess) {
-
         if (QUOTES.length === 0) {
-            console.log("ERROR: No quotes found");
             m.reply("No quotes found.").catch(console.error);
+            m.reply("Consider using `" + PREFIX + "quote` to add some.").catch(console.error);
 		} else {
             let n = random.int(0, QUOTES.length - 1);
             m.reply("#" + (n + 1) + ": " + QUOTES[n]).catch(console.error);
@@ -287,8 +293,8 @@ function parseQuoteSyntax(m, mess) {
 		if (quotesChannel) {
             quotesChannel.send("#" + QUOTES.length + ": " + mess).catch(console.error);
 		} else {
-            m.reply("Couldn't find quotes channel (ID: " + SETTINGS.quotesChannel + ").").catch(console.error);
-            console.log("ERROR: Couldn't find quotesChannel");
+            error("Couldn't find quotes channel (ID: " + SETTINGS.quotesChannel + ").");
+            m.reply("Consider using `" + PREFIX + "setchannel` to set a quotes channel.").catch(console.error);
 		}
         m.delete().catch(console.error);
         m.reply("#" + QUOTES.length + " added.").then(msg => msg.delete({ timeout: ERROR_TIME })).catch(console.error);
@@ -296,7 +302,7 @@ function parseQuoteSyntax(m, mess) {
 }
 
 client.on("ready", () => {
-    console.log("Logged in as " + client.user.tag);
+    log("Logged in as " + client.user.tag);
 })
 
 client.on("message", m => {
