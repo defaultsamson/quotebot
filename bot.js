@@ -44,7 +44,7 @@ COMMANDS.push({
 });
 // Quote command
 COMMANDS.push({
-    aliases: ["quote", "q", "addquote", "quoteadd", "create"],
+    aliases: ["quote", "q", "add", "addquote", "quoteadd"],
     usage: ["",
             "<message_to_quote>",
             "<quote_number>"],
