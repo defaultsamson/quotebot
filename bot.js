@@ -27,7 +27,7 @@ function log(mess) {
     console.log(mess);
 }
 
-function error(m, err) {
+function error(err, m) {
     console.error(err);
     if (m) m.reply("ERROR\n```\n" + err + "\n```").catch(console.error);
 }
@@ -94,7 +94,7 @@ COMMANDS.push({
             if (quotesChannel) {
                 quotesChannel.send("#" + QUOTES.length + ": " + mess).catch(console.error);
             } else {
-                error("Couldn't find quotes channel (ID: " + SETTINGS.quotesChannel + ").");
+                error("Couldn't find quotes channel (ID: " + SETTINGS.quotesChannel + ").", m);
                 m.reply("Consider using `" + PREFIX + "setchannel` to set a quotes channel.").catch(console.error);
             }
             m.delete().catch(console.error);
@@ -145,7 +145,7 @@ COMMANDS.push({
     usage: ["<message_to_search>"],
     func: (m, mess) => {
         if (QUOTES.length === 0) {
-            error(m, "No quotes found");
+            error("No quotes found", m);
         } else {
             var matches = sim.findBestMatch(mess, QUOTES);
             var result = matches.bestMatch.target;
@@ -344,8 +344,8 @@ client.on("message", m => {
         // Remove the alias from the start of mess, as well as any spaces at the beginning and end of mess
         command.func(m, mess.replace(originalAlias, "").trim());
     }
-    // If <= 50% but above 25% similarity, suggest the change
-    else if (bestMatchAlias.rating > 0.25) {
+    // If <= 50% but above 30% similarity, suggest the change
+    else if (bestMatchAlias.rating > 0.30) {
         m.reply("You sent `" + PREFIX + originalAlias + "`, did you mean `" + PREFIX + bestMatchAlias.target + "`?\nUse `" + PREFIX + "help` for more commands.");
     } else {
         m.reply(getInsult() + "\nUse `" + PREFIX + "help` for more commands.");
