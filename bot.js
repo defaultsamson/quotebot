@@ -103,7 +103,7 @@ COMMANDS.push({
     usage: ["<message_to_search>"],
     func: (m, mess) => {
         if (QUOTES.length === 0) {
-            error(m, "ERROR: No quotes found");
+            error(m, "No quotes found");
         } else {
             var matches = sim.findBestMatch(mess, QUOTES);
             var result = matches.bestMatch.target;
