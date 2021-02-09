@@ -35,6 +35,7 @@ function error(m, err) {
 let COMMANDS = [];
 
 // Help command
+// Composes a message which lists all the commands and how they are used
 COMMANDS.push({
     aliases: ["help"],
     usage: [""],
@@ -52,6 +53,7 @@ COMMANDS.push({
     }
 });
 // Quote command
+// Creates a quote and adds it to the database
 COMMANDS.push({
     aliases: ["quote", "q", "add", "addquote", "quoteadd"],
     usage: ["",
@@ -62,6 +64,7 @@ COMMANDS.push({
     }
 });
 // Remove command
+// Removes a quote from the database
 COMMANDS.push({
     aliases: ["remove", "delete", "quoteremove", "removequote", "quotedelete", "deletequote"],
     usage: ["<quote_number>"],
@@ -94,6 +97,7 @@ COMMANDS.push({
     }
 });
 // Search quote command
+// Searches through the quotes and returns the one with most similarity
 COMMANDS.push({
     aliases: ["search", "s", "find", "f", "findquote", "quotefind", "searchquote"],
     usage: ["<message_to_search>"],
@@ -108,11 +112,12 @@ COMMANDS.push({
     }
 });
 // Roll command
+// Rolls any number of dice and replies to the user with the output
 COMMANDS.push({
     aliases: ["roll"],
     usage: ["",
             "<number>",
-            "[number] [number] ..."],
+            "<number> <number> ..."],
     func: (m, mess) => {
         let splitMess = mess.split(" ");
         // If nothing is given, roll a D20
@@ -130,15 +135,17 @@ COMMANDS.push({
     }
 });
 // Reload command
+// Reloads the quote database from the file
 COMMANDS.push({
     aliases: ["reload"],
     usage: [""],
     func: (m, mess) => {
         QUOTES = loadQuotes();
-        m.reply("Reloaded quotes.");
+        m.reply("Reloaded quotes: " + QUOTES.length);
     }
 });
-// Setting quotes channel command
+// Channel command
+// Sets the channel where the quotebot saves the quotes to
 COMMANDS.push({
     aliases: ["setchannel", "quoteschannel", "channel", "channelset"],
     admin: true,
@@ -165,7 +172,7 @@ for (c in COMMANDS) {
     }
 }
 
-function findSimilarAlias(comm) {
+function resolveBestAlias(comm) {
     // Search through the aliases of every command to find the best fitting one
     var matches = sim.findBestMatch(comm, COMMAND_ALIASES);
     // log(JSON.stringify(matches, null, 4))
@@ -331,7 +338,7 @@ client.on("message", m => {
 
     // Get the command with the best matching alias
     let originalAlias = mess.split(" ")[0];
-    let bestMatchAlias = findSimilarAlias(originalAlias);
+    let bestMatchAlias = resolveBestAlias(originalAlias);
     // if above 50% similarity, assume that the best alias is the correct one
     if (bestMatchAlias.rating > 0.50) {
         let command = commandFromAlias(bestMatchAlias.target);
