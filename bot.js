@@ -205,6 +205,19 @@ COMMANDS.push({
         SETTINGS.quotesChannel = mess;
         saveSettings();
         m.reply("Set channel.");
+        m.reply("This is still TODO");
+    }
+});
+// Date command
+// Finds the date of a quote, or the quotes around a specified date
+COMMANDS.push({
+    aliases: ["date", "time", "when", "day"],
+    admin: true,
+    usage: ["<quote_number>",
+            "<datestamp> (e.g. YYYY-MM-DD-HH-mm-ss)"],
+    func: (m, mess) => {
+
+        m.reply("This is still TODO");
     }
 });
 
