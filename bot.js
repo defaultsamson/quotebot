@@ -68,7 +68,7 @@ COMMANDS.push({
                 m.reply("Consider using `" + PREFIX + "quote` to add some.").catch(console.error);
             } else {
                 let n = random.int(0, QUOTES.length - 1);
-                m.reply("#" + (n + 1) + ": " + QUOTES[n]).catch(console.error);
+                m.reply("#" + (n + 1) + ": " + QUOTES[n].quote).catch(console.error);
             }
 
         // If there's only one thing after the command, find that numbered quote
@@ -80,7 +80,7 @@ COMMANDS.push({
                 return;
             }
             if (num < 0) return;
-            m.reply("#" + (num + 1) + ": " + QUOTES[num]).catch(console.error);
+            m.reply("#" + (num + 1) + ": " + QUOTES[num].quote).catch(console.error);
 
         // Else it must be a quote
         } else {
@@ -125,7 +125,7 @@ COMMANDS.push({
 
             // Add the quote to the removed quotes list
             let removed = loadRemoved();
-            removed.push(QUOTES[num]);
+            removed.push(QUOTES[num].quote);
             saveRemoved(removed);
 
             // Remove the quote from the quotes list
@@ -182,11 +182,21 @@ COMMANDS.push({
 // Reload command
 // Reloads the quote database from the file
 COMMANDS.push({
-    aliases: ["reload"],
+    aliases: ["reload, load"],
     usage: [""],
     func: (m, mess) => {
         QUOTES = loadQuotes();
-        m.reply("Reloaded quotes: " + QUOTES.length);
+        m.reply("Loaded quotes: " + QUOTES.length);
+    }
+});
+// Save command
+// Saves the quote database from the array
+COMMANDS.push({
+    aliases: ["save"],
+    usage: [""],
+    func: (m, mess) => {
+        saveQuotes();
+        m.reply("Saved quotes: " + QUOTES.length);
     }
 });
 // Channel command
@@ -290,6 +300,15 @@ function loadQuotes() {
     }
 }
 
+/*
+{
+    quote: QUOTES[i],
+    date: undefined,
+    author_id: undefined,
+    upvote_ids: []
+}
+*/
+
 function saveQuotes() {
     try {
         fs.writeFileSync(QUOTES_FILE, JSON.stringify(QUOTES, null, 4));
@@ -300,7 +319,7 @@ function saveQuotes() {
     let tempquotes = [];
 	for (i in QUOTES) {
         var num = parseInt(i) + 1;
-        tempquotes.push("#" + num + ": " + QUOTES[i]);
+        tempquotes.push("#" + num + ": " + QUOTES[i].quote);
 	}
 
     try {
