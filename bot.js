@@ -85,8 +85,10 @@ COMMANDS.push({
         // Else it must be a quote
         } else {
             QUOTES.push({
-                mess: mess,
+                quote: mess,
                 date: (new Date()).now(),
+                author_id: m.author.id,
+                upvote_ids: []
             });
             saveQuotes();
 
@@ -299,15 +301,6 @@ function loadQuotes() {
         return [];
     }
 }
-
-/*
-{
-    quote: QUOTES[i],
-    date: undefined,
-    author_id: undefined,
-    upvote_ids: []
-}
-*/
 
 function saveQuotes() {
     try {
