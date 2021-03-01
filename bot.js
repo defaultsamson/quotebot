@@ -224,7 +224,6 @@ COMMANDS.push({
 // Finds the date of a quote, or the quotes around a specified date
 COMMANDS.push({
     aliases: ["date", "time", "when", "day"],
-    admin: true,
     usage: ["<quote_number>",
             "<datestamp> (e.g. YYYY-MM-DD-HH-mm-ss)"],
     func: (m, mess) => {
@@ -232,6 +231,55 @@ COMMANDS.push({
         m.reply("This is still TODO");
     }
 });
+// Fulfill command
+// Crawls through a channel and finds all original quotes
+COMMANDS.push({
+    aliases: ["fulfill"],
+    admin: true,
+    usage: ["<quote_number>",
+            "<datestamp> (e.g. YYYY-MM-DD-HH-mm-ss)"],
+    func: async (m, mess) => {
+
+        m.reply("Beginning fulfilling...");
+
+        let channel = m.channel; //m.guild.channels.resolve(m.channel.id);
+
+        let before = null;
+        let done = false;
+
+        let toRet = [];
+
+        while (!done) {
+            const messages = await channel.messages.fetch({ limit: 100, before })
+            if (messages.size > 0) {
+                console.log("size: " + messages.size)
+                before = messages.lastKey()
+
+                const arr = messages.array();
+                for (i in arr) {
+                    // Converts it to a JSON object to avoid annoying discord.js stuff
+                    let converted = JSON.parse(JSON.stringify(arr[i]));
+                    if (converted.authorID === client.user.id && converted.content.charAt(0) === '#') {
+                        //console.log(JSON.stringify(messages, null, 4))
+                        toRet.push({
+                            content: converted.content,
+                            date: converted.createdTimestamp
+                        })
+                    }
+                }
+            } else done = true
+        }
+
+        try {
+            fs.writeFileSync(__dirname + "/found.json", JSON.stringify(toRet, null, 4));
+        } catch (err) {
+            error(err);
+        }
+
+        m.reply("Finished fulfilling...");
+    }
+});
+
 
 // Stores the command aliases for all commands
 let COMMAND_ALIASES = [];
