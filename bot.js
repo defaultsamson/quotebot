@@ -86,7 +86,7 @@ COMMANDS.push({
         } else {
             QUOTES.push({
                 quote: mess,
-                date: (new Date()).now(),
+                date: Date.now(),
                 author_id: m.author.id,
                 upvote_ids: []
             });
@@ -233,7 +233,6 @@ COMMANDS.push({
 });
 // Fulfill command
 // Crawls through a channel and finds all original quotes
-/*
 COMMANDS.push({
     aliases: ["fulfill"],
     admin: true,
@@ -278,7 +277,6 @@ COMMANDS.push({
         m.reply("Finished fulfilling...");
     }
 });
-*/
 // Marge command
 // Merges the original dates (from found.json) with the quote database
 COMMANDS.push({
@@ -334,8 +332,9 @@ COMMANDS.push({
                     // Possible... Check manually
                     console.log("------------------------");
                     console.log("Possible poor match??");
-                                  console.log(QUOTES[j]);
-                                  console.log(best);
+                                  console.log("# " + j)
+                    console.log(QUOTES[j]);
+                    console.log(best);
                     console.log("-----------------------------");
                 }
             }
@@ -344,7 +343,9 @@ COMMANDS.push({
             error(err);
         }
 
-        m.reply("Finished fulfilling...");
+        saveQuotes();
+
+        m.reply("Finished merging...");
     }
 });
 
