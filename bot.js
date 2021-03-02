@@ -127,7 +127,7 @@ COMMANDS.push({
 
             // Add the quote to the removed quotes list
             let removed = loadRemoved();
-            removed.push(QUOTES[num].quote);
+            removed.push(QUOTES[num]);
             saveRemoved(removed);
 
             // Remove the quote from the quotes list
