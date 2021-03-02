@@ -257,13 +257,12 @@ COMMANDS.push({
 
                 const arr = messages.array();
                 for (i in arr) {
-                    // Converts it to a JSON object to avoid annoying discord.js stuff
-                    let converted = JSON.parse(JSON.stringify(arr[i]));
-                    if (converted.authorID === client.user.id && converted.content.charAt(0) === '#') {
+                    // Use the message if it's sent by the bot, and there's no mentions in the message
+                    if (arr[i].author.id === client.user.id && arr[i].mentions.users.size == 0) {
                         //console.log(JSON.stringify(messages, null, 4))
                         toRet.push({
-                            content: converted.content,
-                            date: converted.createdTimestamp
+                            content: arr[i].content,
+                            date: arr[i].createdTimestamp
                         })
                     }
                 }
