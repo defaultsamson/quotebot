@@ -233,11 +233,11 @@ COMMANDS.push({
 });
 // Fulfill command
 // Crawls through a channel and finds all original quotes
+/*
 COMMANDS.push({
     aliases: ["fulfill"],
     admin: true,
-    usage: ["<quote_number>",
-            "<datestamp> (e.g. YYYY-MM-DD-HH-mm-ss)"],
+    usage: [""],
     func: async (m, mess) => {
 
         m.reply("Beginning fulfilling...");
@@ -271,6 +271,75 @@ COMMANDS.push({
 
         try {
             fs.writeFileSync(__dirname + "/found.json", JSON.stringify(toRet, null, 4));
+        } catch (err) {
+            error(err);
+        }
+
+        m.reply("Finished fulfilling...");
+    }
+});
+*/
+// Marge command
+// Merges the original dates (from found.json) with the quote database
+COMMANDS.push({
+    aliases: ["merge"],
+    admin: true,
+    usage: [""],
+    func: (m, mess) => {
+
+        m.reply("Beginning merging...");
+
+        try {
+            let toRet = JSON.parse(fs.readFileSync(__dirname + "/found.json"));
+            let foundArray = []
+
+            // Load up the found quotes into foundArray
+            for (i in toRet) {
+                // let thing = toRet[i];
+                foundArray.push(toRet[i].content)
+            }
+
+            // Check the similarity of the existing quotes in foundArray
+            for (j in QUOTES) {
+                var matches = sim.findBestMatch(QUOTES[j].quote, foundArray);
+                let best = matches.bestMatch;
+                if (best.rating > 0.75) {
+                    // Do it
+                    let bestContent = best.target
+
+                    // Find the best matching (should be equal) toRet thingies
+                    for (k in toRet) {
+                        if (bestContent === toRet[k].content) {
+                            // Now we'll set the quote up with its original date
+                            QUOTES[j].date = toRet[k].date;
+                            // Then remove the best entry from the foundArray
+                            let indexLol = -1;
+                            for (let v = 0; v < foundArray.length; v++) {
+                                if (foundArray[v] === bestContent) {
+                                    indexLol = v;
+                                    break;
+                                }
+                            }
+
+                            if (indexLol >= 0) {
+                                foundArray.splice(indexLol, 1);
+                            } else {
+                                console.log("Not in found array: " + bestContent);
+                            }
+
+                            break;
+                        }
+                    }
+                } else {
+                    // Possible... Check manually
+                    console.log("------------------------");
+                    console.log("Possible poor match??");
+                                  console.log(QUOTES[j]);
+                                  console.log(best);
+                    console.log("-----------------------------");
+                }
+            }
+
         } catch (err) {
             error(err);
         }
