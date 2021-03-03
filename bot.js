@@ -184,7 +184,7 @@ COMMANDS.push({
 // Reload command
 // Reloads the quote database from the file
 COMMANDS.push({
-    aliases: ["reload, load"],
+    aliases: ["reload", "load"],
     usage: [""],
     func: (m, mess) => {
         QUOTES = loadQuotes();
@@ -206,18 +206,11 @@ COMMANDS.push({
 COMMANDS.push({
     aliases: ["setchannel", "quoteschannel", "channel", "channelset"],
     admin: true,
-    usage: ["<channel_id>",
-            "<channel_name>"],
+    usage: ["<channel_id>"],
     func: (m, mess) => {
-        /** TODO test if the message is a valid channel
-        if (mess) {
-
-        }*/
 
         SETTINGS.quotesChannel = mess;
         saveSettings();
-        m.reply("Set channel.");
-        m.reply("This is still TODO");
     }
 });
 // Date command
@@ -226,6 +219,35 @@ COMMANDS.push({
     aliases: ["date", "time", "when", "day"],
     usage: ["<quote_number>",
             "<datestamp> (e.g. YYYY-MM-DD-HH-mm-ss)"],
+    func: (m, mess) => {
+
+        let splitMess = mess.split(" ");
+        if (splitMess.length === 1) {
+
+            // Parse the number given
+            let num = parseNumber(splitMess[0], m) - 1;
+            if (num >= QUOTES.length) {
+               m.reply(getInsult() + "Quote #" + num + " doesn't exist.").catch(console.error);
+               return;
+            }
+            if (num < 0) return;
+
+            let date = new Date(QUOTES[num].date);
+            let month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][date.getMonth()];
+            let day = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][date.getDay()];
+
+            m.reply("Quote #" + (num + 1) + " was made on:\n" + day + " " + month + " " + date.getDate() + ", " + date.getFullYear() + " @ " + (date.getHours() < 10 ? "0" : "") + date.getHours() + ":" + date.getMinutes() + " UTC").catch(console.error);
+
+        } else {
+            m.reply(getInsult() + " I only expected a single number afterwards.").catch(console.error);
+        }
+    }
+});
+// Author command
+// Finds the date of a quote
+COMMANDS.push({
+    aliases: ["author", "creator", "writer", "who"],
+    usage: ["<quote_number>"],
     func: (m, mess) => {
 
         m.reply("This is still TODO");
@@ -309,10 +331,10 @@ function saveQuotes() {
     }
 
     let tempquotes = [];
-	for (i in QUOTES) {
+    for (i in QUOTES) {
         var num = parseInt(i) + 1;
         tempquotes.push("#" + num + ": " + QUOTES[i].quote);
-	}
+    }
 
     try {
         fs.writeFileSync(PRETTY_QUOTES_FILE, tempquotes.join("\n"));
@@ -323,14 +345,14 @@ function saveQuotes() {
 
 function parseNumber(num, m) {
     num = parseInt(num, 10);
-	if (isNaN(num)) {
+    if (isNaN(num)) {
         m.reply(getInsult() + " That wasn't a number.").catch(console.error);
         return -1;
-	}
-	if (num <= 0) {
+    }
+    if (num <= 0) {
         m.reply(getInsult() + " Give a number greater than zero.").catch(console.error);
         return -1;
-	}
+    }
     return num;
 }
 
