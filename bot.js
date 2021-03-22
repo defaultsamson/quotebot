@@ -233,10 +233,8 @@ COMMANDS.push({
             if (num < 0) return;
 
             let date = new Date(QUOTES[num].date);
-            let month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][date.getMonth()];
-            let day = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][date.getDay()];
 
-            m.reply("Quote #" + (num + 1) + " was made on:\n" + day + " " + month + " " + date.getDate() + ", " + date.getFullYear() + " @ " + (date.getHours() < 10 ? "0" : "") + date.getHours() + ":" + date.getMinutes() + " UTC").catch(console.error);
+            m.reply("Quote #" + (num + 1) + " was made on:\n" + dateToString(date)).catch(console.error);
 
         } else {
             m.reply(getInsult() + " I only expected a single number afterwards.").catch(console.error);
@@ -247,6 +245,16 @@ COMMANDS.push({
 // Finds the date of a quote
 COMMANDS.push({
     aliases: ["author", "creator", "writer", "who"],
+    usage: ["<quote_number>"],
+    func: (m, mess) => {
+
+        m.reply("This is still TODO");
+    }
+});
+// Claim command
+// Finds the date of a quote
+COMMANDS.push({
+    aliases: ["claim", "quoteclaim", "claimquote"],
     usage: ["<quote_number>"],
     func: (m, mess) => {
 
@@ -341,6 +349,12 @@ function saveQuotes() {
     } catch (err) {
         error(err);
     }
+}
+
+function dateToString(date) {
+    let month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][date.getMonth()];
+    let day = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][date.getDay()];
+    return day + " " + month + " " + date.getDate() + ", " + date.getFullYear() + " @ " + (date.getHours() < 10 ? "0" : "") + date.getHours() + ":" + date.getMinutes() + " UTC";
 }
 
 function parseNumber(num, m) {
