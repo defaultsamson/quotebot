@@ -5,7 +5,6 @@ const sim = require('string-similarity');
 const random = require('random');
 
 const PREFIX = "!";
-const ERROR_TIME = 20000;
 
 let SETTINGS;
 const SETTINGS_FILE = __dirname + "/settings.json";
@@ -74,13 +73,20 @@ COMMANDS.push({
         // If there's only one thing after the command, find that numbered quote
         } else if (splitMess.length === 1) {
 
-            let num = parseNumber(splitMess[0], m) - 1;
-            if (num >= QUOTES.length) {
-                m.reply(getInsult() + " Quote #" + (num + 1) + " doesn't exist.").catch(console.error);
-                return;
+            let parsed = parseNumber(splitMess[0], m);
+            if (parsed.success) {
+                let num = parsed.number - 1;
+                if (num >= QUOTES.length) {
+                    m.reply(getInsult() + " Quote #" + (num + 1) + " doesn't exist.").catch(console.error);
+                    return;
+                } else if (num < 0) {
+                    m.reply(getInsult() + " Quote #" + (num + 1) + " doesn't exist.").catch(console.error);
+                } else {
+                    m.reply("#" + (num + 1) + ": " + QUOTES[num].quote).catch(console.error);
+                }
+            } else {
+                m.reply(splitMess[0] + ", is not a number.").catch(console.error);
             }
-            if (num < 0) return;
-            m.reply("#" + (num + 1) + ": " + QUOTES[num].quote).catch(console.error);
 
         // Else it must be a quote
         } else {
@@ -103,7 +109,7 @@ COMMANDS.push({
                 m.reply("Consider using `" + PREFIX + "setchannel` to set a quotes channel.").catch(console.error);
             }
             m.delete().catch(console.error);
-            m.reply("#" + QUOTES.length + " added.").then(msg => msg.delete({ timeout: ERROR_TIME })).catch(console.error);
+            m.reply("#" + QUOTES.length + " added.").catch(console.error);
         }
     }
 });
@@ -118,25 +124,31 @@ COMMANDS.push({
         if (splitMess.length === 1) {
 
             // Parse the number given
-            let num = parseNumber(splitMess[0], m) - 1;
-            if (num >= QUOTES.length) {
-                m.reply(getInsult() + "Quote #" + num + " doesn't exist.").catch(console.error);
-                return;
+            let parsed = parseNumber(splitMess[0], m);
+            if (parsed.success) {
+                let num = parsed.number - 1;
+                if (num >= QUOTES.length) {
+                    m.reply(getInsult() + " Quote #" + (num + 1) + " doesn't exist.").catch(console.error);
+                    return;
+                } else if (num < 0) {
+                    m.reply(getInsult() + " Quote #" + (num + 1) + " doesn't exist.").catch(console.error);
+                } else {
+                    m.reply("#" + (num + 1) + ": " + QUOTES[num].quote).catch(console.error);
+
+                    // Add the quote to the removed quotes list
+                    let removed = loadRemoved();
+                    removed.push(QUOTES[num]);
+                    saveRemoved(removed);
+
+                    // Remove the quote from the quotes list
+                    QUOTES.splice(num, 1); // Delete the quote from the array
+                    saveQuotes(); // Save the new array to the file
+
+                    m.reply("#" + (num + 1) + " removed.").catch(console.error);
+                }
+            } else {
+                m.reply(splitMess[0] + " is not a number.").catch(console.error);
             }
-            if (num < 0) return;
-
-            // Add the quote to the removed quotes list
-            let removed = loadRemoved();
-            removed.push(QUOTES[num]);
-            saveRemoved(removed);
-
-            // Remove the quote from the quotes list
-            QUOTES.splice(num, 1); // Delete the quote from the array
-            saveQuotes(); // Save the new array to the file
-
-            // Delete the original message
-            m.delete().catch(console.error);
-            m.reply("#" + (num + 1) + " removed.").then(msg => msg.delete({ timeout: ERROR_TIME })).catch(console.error);
 
         } else {
             m.reply(getInsult() + " I only expected a single number afterwards.").catch(console.error);
@@ -149,13 +161,17 @@ COMMANDS.push({
     aliases: ["search", "s", "find", "f", "findquote", "quotefind", "searchquote"],
     usage: ["<message_to_search>"],
     func: (m, mess) => {
-        if (QUOTES.length === 0) {
-            error("No quotes found", m);
-        } else {
-            var matches = sim.findBestMatch(mess, QUOTES);
-            var result = matches.bestMatch.target;
-            m.reply("#" + (matches.bestMatchIndex + 1) + ": " + result).catch(console.error);
+        /*
+        if (mess) {
+            if (QUOTES.length === 0) {
+                error("No quotes found", m);
+            } else {
+                var matches = sim.findBestMatch(mess, QUOTES);
+                var result = matches.bestMatch.target;
+                m.reply("#" + (matches.bestMatchIndex + 1) + ": " + result).catch(console.error);
+            }
         }
+        */
     }
 });
 // Roll command
@@ -173,9 +189,14 @@ COMMANDS.push({
         } else {
             let replyMess = "";
             for (i in splitMess) {
-                let num = parseNumber(splitMess[i], m);
-                if (num < 0) return;
-                replyMess += random.int(1, num) + "/" + num + " ";
+
+                let parsed = parseNumber(splitMess[i], m);
+                if (parsed.success) {
+                    let num = Math.abs(parsed.number);
+                    replyMess += random.int(1, num) + "/" + num + " ";
+                } else {
+                    replyMess += "??/" + splitMess[i] + " ";
+                }
             }
             m.reply(replyMess);
         }
@@ -225,17 +246,20 @@ COMMANDS.push({
         if (splitMess.length === 1) {
 
             // Parse the number given
-            let num = parseNumber(splitMess[0], m) - 1;
-            if (num >= QUOTES.length) {
-               m.reply(getInsult() + "Quote #" + num + " doesn't exist.").catch(console.error);
-               return;
+            let parsed = parseNumber(splitMess[0], m);
+            if (parsed.success) {
+                let num = parsed.number - 1;
+                if (num >= QUOTES.length) {
+                   m.reply(getInsult() + "Quote #" + num + " doesn't exist.").catch(console.error);
+                } else if (num < 0) {
+                   m.reply(getInsult() + "Quote #" + num + " doesn't exist.").catch(console.error);
+                } else {
+                    let date = new Date(QUOTES[num].date);
+                    m.reply("Quote #" + (num + 1) + " was made on:\n" + dateToString(date)).catch(console.error);
+                }
+            } else {
+                m.reply(splitMess[0] + ", is not a number.").catch(console.error);
             }
-            if (num < 0) return;
-
-            let date = new Date(QUOTES[num].date);
-
-            m.reply("Quote #" + (num + 1) + " was made on:\n" + dateToString(date)).catch(console.error);
-
         } else {
             m.reply(getInsult() + " I only expected a single number afterwards.").catch(console.error);
         }
@@ -360,14 +384,20 @@ function dateToString(date) {
 function parseNumber(num, m) {
     num = parseInt(num, 10);
     if (isNaN(num)) {
-        m.reply(getInsult() + " That wasn't a number.").catch(console.error);
-        return -1;
+        return {
+            success: false
+        };
     }
     if (num <= 0) {
         m.reply(getInsult() + " Give a number greater than zero.").catch(console.error);
-        return -1;
+        return {
+            success: false
+        };
     }
-    return num;
+    return {
+        success: true,
+        number: num
+    };
 }
 
 client.on("ready", () => {
