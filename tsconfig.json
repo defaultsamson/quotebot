@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    // "target": "esnext",
+    // "module": "esnext",
+    // "noImplicitAny": true,
+    "esModuleInterop": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "outFile": "bin/tsc.js",
+    "sourceMap": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}

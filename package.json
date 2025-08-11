@@ -1,7 +1,27 @@
 {
+  "name": "quotebot",
+  "version": "1.0.0",
+  "description": "Bot for quoting things on a Discord server.",
+  "homepage": "https://github.com/defaultsamson/quotebot#readme",
+  "bugs": {
+    "url": "https://github.com/defaultsamson/quotebot/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/defaultsamson/quotebot.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "bot.js",
+  "scripts": {
+    "build": "npx tsc",
+    "bot": "node ./bin/tsc.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  },
   "dependencies": {
-    "discord.js": "^12.5.1",
-    "random": "^2.2.0",
-    "string-similarity": "^4.0.4"
+    "discord.js": "^14.21.0"
   }
 }
