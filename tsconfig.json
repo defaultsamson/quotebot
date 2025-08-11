@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
     // "target": "esnext",
-    // "module": "esnext",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     // "noImplicitAny": true,
     "esModuleInterop": true,
     "removeComments": true,
     "preserveConstEnums": true,
-    "outFile": "bin/tsc.js",
+    // "outFile": "bin/tsc.js",
+    "outDir": "./dist",
     "sourceMap": true
   },
   "include": ["src/**/*"],

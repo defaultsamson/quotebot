@@ -92,5 +92,6 @@ quotes.txt
 quotes.json
 removed.json
 *.autosave
-bin
 
+# Compiled output
+dist/

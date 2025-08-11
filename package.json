@@ -16,7 +16,7 @@
   "main": "bot.js",
   "scripts": {
     "build": "npx tsc",
-    "bot": "node ./bin/tsc.js"
+    "bot": "if [ -f ./dist/bot.js ]; then node ./dist/bot.js; else echo 'Error: ./dist/bot.js not found. Please run `npm run build` first.'; fi"
   },
   "devDependencies": {
     "typescript": "^5.9.2"
