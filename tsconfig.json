@@ -6,6 +6,7 @@
     // "noImplicitAny": true,
     "esModuleInterop": true,
     "removeComments": true,
+    "resolveJsonModule": true,
     "preserveConstEnums": true,
     // "outFile": "bin/tsc.js",
     "outDir": "./dist",
