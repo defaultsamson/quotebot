@@ -10,5 +10,6 @@ function addCommand(c: Command) {
 // Dynamically import all command files
 addCommand((await import("./ping.js")).default)
 addCommand((await import("./user.js")).default)
+addCommand((await import("./quote.js")).default)
 
 export default COMMANDS
