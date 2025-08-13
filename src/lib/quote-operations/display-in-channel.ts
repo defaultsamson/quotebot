@@ -35,9 +35,8 @@ export async function displayQuoteInChannel(
   const guild = incoming.guild
   if (!guild) {
     await message?.reply({ content: "InternalError: Server not found." })
-    await interaction?.reply({
+    await interaction?.editReply({
       content: "InternalError: Server not found.",
-      ephemeral: true,
     })
     return
   }
@@ -49,31 +48,40 @@ export async function displayQuoteInChannel(
     await message?.reply({
       content: `InternalError: Channel ${targetChannel} not found.`,
     })
-    await interaction?.reply({
+    await interaction?.editReply({
       content: `InternalError: Channel ${targetChannel} not found.`,
-      ephemeral: true,
     })
     return
   }
 
-  function getQuoteString(): string {
-    return `#${data.quotes.indexOf(quote) + 1}: ${quote.quote}`
+  /**
+   * Adds emoji to the `sentMessage` and manages the reaction cache,
+   * which allows users to upvote and downvote quotes.
+   */
+  async function addEmojiToMessage(sentMessage: Message) {
+    EMOJI_CACHE.set(sentMessage.id, quote.internalID)
+
+    // Add reactions for voting
+    await sentMessage.react(Emoji.Plus)
+    await sentMessage.react(Emoji.Minus)
+    await new Promise((resolve) => setTimeout(resolve, VOTING_DURATION)).then(
+      () => {
+        sentMessage.reactions.removeAll()
+        EMOJI_CACHE.delete(sentMessage.id)
+      }
+    )
   }
 
-  // Send the quote to the channel
-  await channel
-    .send({ content: getQuoteString() })
-    .then(async (sentMessage) => {
-      EMOJI_CACHE.set(sentMessage.id, quote.internalID)
+  const response = {
+    content: `#${data.quotes.indexOf(quote) + 1}: ${quote.quote}`,
+  }
 
-      // Add reactions for voting
-      await sentMessage.react(Emoji.Plus)
-      await sentMessage.react(Emoji.Minus)
-      await new Promise((resolve) => setTimeout(resolve, VOTING_DURATION)).then(
-        () => {
-          sentMessage.reactions.removeAll()
-          EMOJI_CACHE.delete(sentMessage.id)
-        }
-      )
-    })
+  if (reply) {
+    // Reply directly to the user
+    await message?.reply(response).then(addEmojiToMessage)
+    await interaction?.editReply(response).then(addEmojiToMessage)
+  } else {
+    // Send the quote to the channel
+    await channel.send(response).then(addEmojiToMessage)
+  }
 }

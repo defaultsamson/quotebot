@@ -3,6 +3,7 @@ import { addQuote } from "./quote-operations/add.js"
 import { getRandom } from "./quote-operations/get-random.js"
 import { getQuote } from "./quote-operations/get.js"
 import { removeQuote } from "./quote-operations/remove.js"
+import { searchQuote } from "./quote-operations/search.js"
 
 /** @deprecated This is just here for legacy support for `!q` commands and such. */
 export default async function legacyCommandHandler(
@@ -59,6 +60,22 @@ export default async function legacyCommandHandler(
       return removeQuote(message, id)
     }
   }
+
+  // Check for search commands
+  const searchMatches = [
+    // Note: start with the longest ones to avoid putting keywords as part of the quote
+    "!quote search",
+    "!quotes search",
+    "!q search",
+    "!search quote",
+    "!search",
+    "!s",
+  ]
+  for (const m of searchMatches) // Find a match and get the message
+    if (raw.startsWith(m)) {
+      const text = raw.slice(m.length).trim()
+      return await searchQuote(message, text)
+    }
 
   // Finally, check for add commands
   const addMatches = [

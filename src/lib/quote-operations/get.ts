@@ -22,15 +22,15 @@ export async function getQuote(incoming: Interaction | Message, id: number) {
     return await getRandom(incoming)
   }
 
+  // It could potentially take more than 3 seconds to load this
+  if (!interaction?.deferred) await interaction?.deferReply()
+
   const data = readServerData(incoming.guildId)
 
   // Note: `id` starts at 1
   if (data.quotes.length >= id && id > 0) {
-    // If the quote exists
+    // If the quote exists, display it with emoji reactions
     displayQuoteInChannel(incoming, data, data.quotes[id - 1], true)
-    // const reply = `#${id}: ${data.quotes[id - 1].quote}`
-    // await message?.reply({ content: reply })
-    // await interaction?.reply({ content: reply })
   } else {
     // If the ID is out of range
     const reply =
@@ -38,6 +38,6 @@ export async function getQuote(incoming: Interaction | Message, id: number) {
         ? `Citat med ID ${id} finns inte. Max ${data.quotes.length}`
         : `Quote with ID ${id} does not exist. Max ${data.quotes.length}`
     await message?.reply({ content: reply })
-    await interaction?.reply({ content: reply, flags: MessageFlags.Ephemeral })
+    await interaction?.editReply({ content: reply })
   }
 }
