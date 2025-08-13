@@ -4,8 +4,14 @@ import {
   ChatInputCommandInteraction,
   Locale,
   MessageFlags,
+  CacheType,
 } from "discord.js"
 import { Command } from "../types/command.js"
+import { addQuote } from "../lib/quote-operations/add.js"
+import { searchQuote } from "../lib/quote-operations/search.js"
+import { removeQuote } from "../lib/quote-operations/remove.js"
+import { getRandom } from "../lib/quote-operations/get-random.js"
+import { getQuote } from "../lib/quote-operations/get.js"
 
 export enum QuoteAction {
   Get = "get",
@@ -123,6 +129,15 @@ export default {
         })
     ),
   async execute(interaction: ChatInputCommandInteraction) {
+    if (!interaction) return
+    if (!(interaction.member instanceof GuildMember)) {
+      interaction.reply({
+        content: "This command can only be used in a server.",
+        flags: MessageFlags.Ephemeral,
+      })
+      return
+    }
+
     const subcommand = interaction.options.getSubcommand()
     switch (subcommand) {
       case QuoteAction.Get: {
@@ -146,7 +161,7 @@ export default {
         return
       }
       case QuoteAction.Random: {
-        doRandom(interaction)
+        getRandom(interaction)
         return
       }
       default: {
@@ -159,38 +174,3 @@ export default {
     }
   },
 } as Command
-
-function doRandom(interaction: ChatInputCommandInteraction) {
-  // Logic to get a random quote
-  return interaction.reply({
-    content: `Get a random quote`,
-    flags: MessageFlags.Ephemeral,
-  })
-}
-function addQuote(interaction: ChatInputCommandInteraction, text: string) {
-  // Logic to add a quote
-  return interaction.reply({
-    content: `Quote added: "${text}"`,
-    flags: MessageFlags.Ephemeral,
-  })
-}
-function removeQuote(interaction: ChatInputCommandInteraction, id: number) {
-  // Logic to remove a quote
-  return interaction.reply({
-    content: `Quote with ID ${id} removed.`,
-    flags: MessageFlags.Ephemeral,
-  })
-}
-function getQuote(interaction: ChatInputCommandInteraction, id: number) {
-  // Logic to get a quote by ID
-  return interaction.reply({
-    content: `Quote with ID ${id} retrieved.`,
-    flags: MessageFlags.Ephemeral,
-  })
-}
-function searchQuote(interaction: ChatInputCommandInteraction, text: string) {
-  return interaction.reply({
-    content: `Searching for quotes with: "${text}"`,
-    flags: MessageFlags.Ephemeral,
-  })
-}
