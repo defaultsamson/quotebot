@@ -7,4 +7,6 @@ export default interface ServerData {
   /** The next unique quote identifier. Must be incremented by 1 each time a quote is added. */
   nextInternalID: number
   adminIDs: string[]
+  /** The ID of the channel to send quotes to. */
+  channelID: string | null
 }

@@ -22,7 +22,9 @@ export function readServerData(serverID: string): ServerData {
       quotes: [],
       removed: [],
       adminIDs: [],
+      channelID: null,
     }
+
     // Write it
     writeServerData(newData)
 

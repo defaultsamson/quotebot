@@ -12,6 +12,7 @@ import { searchQuote } from "../lib/quote-operations/search.js"
 import { removeQuote } from "../lib/quote-operations/remove.js"
 import { getRandom } from "../lib/quote-operations/get-random.js"
 import { getQuote } from "../lib/quote-operations/get.js"
+import { getInfo } from "../lib/quote-operations/get-info.js"
 
 export enum QuoteAction {
   Get = "get",
@@ -19,6 +20,7 @@ export enum QuoteAction {
   Search = "search",
   Remove = "remove",
   Random = "random",
+  Info = "info",
 }
 
 export default {
@@ -127,6 +129,29 @@ export default {
         .setDescriptionLocalizations({
           [Locale.Swedish]: "Visa ett slumpmässigt citat",
         })
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName(QuoteAction.Info)
+        .setDescription("Get information about a quote")
+        .setNameLocalizations({
+          [Locale.Swedish]: "information",
+        })
+        .setDescriptionLocalizations({
+          [Locale.Swedish]: "Visa information om ett citat",
+        })
+        .addIntegerOption((option) =>
+          option
+            .setName("id")
+            .setDescription("Quote ID")
+            .setNameLocalizations({
+              [Locale.Swedish]: "id",
+            })
+            .setDescriptionLocalizations({
+              [Locale.Swedish]: "Offertnummer",
+            })
+            .setRequired(true)
+        )
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     if (!interaction) return
@@ -162,6 +187,11 @@ export default {
       }
       case QuoteAction.Random: {
         getRandom(interaction)
+        return
+      }
+      case QuoteAction.Info: {
+        const id = interaction.options.getInteger("id", true)
+        getInfo(interaction, id)
         return
       }
       default: {

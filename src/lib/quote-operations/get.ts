@@ -7,6 +7,7 @@ import {
 } from "discord.js"
 import { getRandom } from "./get-random.js"
 import { readServerData } from "../server-data/read-write.js"
+import { displayQuoteInChannel } from "./display-in-channel.js"
 
 export async function getQuote(incoming: Interaction | Message, id: number) {
   /** @deprecated just here for legacy `!q` commands */
@@ -26,9 +27,10 @@ export async function getQuote(incoming: Interaction | Message, id: number) {
   // Note: `id` starts at 1
   if (data.quotes.length >= id && id > 0) {
     // If the quote exists
-    const reply = `#${id}: ${data.quotes[id - 1].quote}`
-    await message?.reply({ content: reply })
-    await interaction?.reply({ content: reply })
+    displayQuoteInChannel(incoming, data, data.quotes[id - 1], true)
+    // const reply = `#${id}: ${data.quotes[id - 1].quote}`
+    // await message?.reply({ content: reply })
+    // await interaction?.reply({ content: reply })
   } else {
     // If the ID is out of range
     const reply =

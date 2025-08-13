@@ -6,6 +6,8 @@ import {
   Locale,
 } from "discord.js"
 import { readServerData, writeServerData } from "../server-data/read-write.js"
+import { Quote } from "../../types/quote.js"
+import { displayQuoteInChannel } from "./display-in-channel.js"
 
 export async function addQuote(
   incoming: Interaction | Message,
@@ -31,20 +33,20 @@ export async function addQuote(
 
   const data = readServerData(incoming.guildId)
 
-  data.quotes.push({
+  const newQuote: Quote = {
     internalID: data.nextInternalID,
     quote: text,
     authorID: incoming.member.user.id,
     date: Date.now(),
     upvoteIDs: [],
     downvoteIDs: [],
-  })
+  }
 
+  data.quotes.push(newQuote)
   data.nextInternalID++
-
-  // TODO upon adding a quote, we should add it to the listener for upvotes/downvotes
-
   writeServerData(data)
+
+  displayQuoteInChannel(incoming, data, newQuote, false)
 
   // Success
   const reply =
