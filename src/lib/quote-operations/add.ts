@@ -5,6 +5,7 @@ import {
   BaseInteraction,
   Locale,
 } from "discord.js"
+import { readServerData, writeServerData } from "../server-data/read-write.js"
 
 export async function addQuote(
   incoming: Interaction | Message,
@@ -28,11 +29,28 @@ export async function addQuote(
     return
   }
 
+  const data = readServerData(incoming.guildId)
+
+  data.quotes.push({
+    internalID: data.nextInternalID,
+    quote: text,
+    authorID: incoming.member.user.id,
+    date: Date.now(),
+    upvoteIDs: [],
+    downvoteIDs: [],
+  })
+
+  data.nextInternalID++
+
+  // TODO upon adding a quote, we should add it to the listener for upvotes/downvotes
+
+  writeServerData(data)
+
   // Success
   const reply =
     interaction?.locale === Locale.Swedish
-      ? `Citat tillagt: ${text}`
-      : `Quote added: ${text}`
+      ? `Citat #${data.quotes.length} tillagt.`
+      : `Quote #${data.quotes.length} added.`
   await message?.reply({ content: reply })
   await interaction?.reply({ content: reply, flags: MessageFlags.Ephemeral })
 }

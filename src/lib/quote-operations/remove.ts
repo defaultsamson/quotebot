@@ -5,6 +5,7 @@ import {
   Message,
   MessageFlags,
 } from "discord.js"
+import { readServerData, writeServerData } from "../server-data/read-write.js"
 
 export async function removeQuote(incoming: Interaction | Message, id: number) {
   /** @deprecated just here for legacy `!q` commands */
@@ -14,11 +15,33 @@ export async function removeQuote(incoming: Interaction | Message, id: number) {
       ? incoming
       : null
 
-  // Success
-  const reply =
-    interaction?.locale === Locale.Swedish
-      ? `Citat med ID ${id} borttaget`
-      : `Quote with ID ${id} removed.`
-  await message?.reply({ content: reply })
-  await interaction?.reply({ content: reply, flags: MessageFlags.Ephemeral })
+  const data = readServerData(incoming.guildId)
+
+  // Note: `id` starts at 1
+  if (data.quotes.length >= id && id > 0) {
+    // If the quote exists
+
+    // Adds the 1 spliced quote to the removed array
+    const removedQuote = data.quotes.splice(id - 1, 1)[0]
+    removedQuote.removedDate = Date.now() // Set the removal date
+    removedQuote.removedBy = incoming.member.user.id // Set the user who removed it
+    data.removed.push(removedQuote) // Add to removed list
+    writeServerData(data)
+
+    // Success
+    const reply =
+      interaction?.locale === Locale.Swedish
+        ? `Citat med ID ${id} borttaget`
+        : `Quote with ID ${id} removed.`
+    await message?.reply({ content: reply })
+    await interaction?.reply({ content: reply })
+  } else {
+    // If the ID is out of range
+    const reply =
+      interaction?.locale === Locale.Swedish
+        ? `Citat med ID ${id} finns inte. Max ${data.quotes.length}`
+        : `Quote with ID ${id} does not exist. Max ${data.quotes.length}`
+    await message?.reply({ content: reply })
+    await interaction?.reply({ content: reply, flags: MessageFlags.Ephemeral })
+  }
 }
