@@ -1,10 +1,9 @@
-import { Interaction, MessageFlags } from "discord.js"
+import { BaseInteraction, Interaction, Message } from "discord.js"
+import { getQuote } from "./get.js"
 
-export async function getRandom(interaction: Interaction) {
-  if (interaction.isRepliable()) {
-    // Logic to get a random quote
-    return await interaction.reply({
-      content: `Get a random quote`
-    })
-  }
+export async function getRandom(
+  incoming: Interaction | Message
+): Promise<void> {
+  // TODO logic for getting a random quote
+  await getQuote(incoming, ~~(Math.random() * 100))
 }
