@@ -97,13 +97,13 @@ export default {
         )
         .addNumberOption((option) =>
           option
-            .setName("limit")
-            .setDescription("Number of results to return")
+            .setName("top")
+            .setDescription("Get the top number of results")
             .setNameLocalizations({
-              [Locale.Swedish]: "gräns",
+              [Locale.Swedish]: "topp",
             })
             .setDescriptionLocalizations({
-              [Locale.Swedish]: "Antal resultat att returnera",
+              [Locale.Swedish]: "Hämta det översta antalet resultat",
             })
             .setRequired(false)
         )
@@ -189,7 +189,7 @@ export default {
       }
       case QuoteAction.Search: {
         const text = interaction.options.getString("text", true)
-        const limit = interaction.options.getNumber("limit", false)
+        const limit = interaction.options.getNumber("top", false)
         searchQuote(interaction, text, limit)
         return
       }

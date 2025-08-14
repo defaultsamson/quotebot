@@ -13,6 +13,7 @@ export async function searchQuote(
   count: number
 ) {
   if (!count || isNaN(count) || count < 1) count = 1 // Default to 1 if weird
+  if (count > 10) count = 10 // Cap at 10
 
   /** @deprecated just here for legacy `!q` commands */
   const message = incoming instanceof Message ? incoming : null
@@ -32,27 +33,37 @@ export async function searchQuote(
 
   const results = fuzzysort.go(text, data.quotes, {
     key: "quote",
-    limit: count,
   })
 
   if (results.length === 0) {
     // No matches
     await reply("No matches found")
-  } else if (results.length === 1) {
+  } else if (count === 1) {
     // 1 Match (don't show % match)
     // Since there was only 1 match, show the quote with voting reactions
     await displayQuoteInChannel(incoming, data, results[0].obj, true)
   } else {
     // Display the results
     const resultString = results
+      .slice(0, count) // Limit the number of results displayed
       .map(
         (o) =>
-          `(${Math.floor(o.score * 100)}%) #${
+          `(${Math.round(o.score * 100)}%) #${
             data.quotes.indexOf(o.obj) + 1
           }: ${o.obj.quote}`
       )
       .join("\n")
 
-    await reply(`Found ${results.length} quotes:\n${resultString}`)
+    // Discord has a max of 2000, but we wanna show even less so there's not spam
+    const MAX = 1900
+    const header = `Found ${results.length} quotes:\n`
+    const space = MAX - header.length
+    const body =
+      resultString.length > space
+        ? // Shorten the response if too long
+          resultString.slice(0, space - 3) + "..."
+        : resultString
+
+    await reply(body)
   }
 }
