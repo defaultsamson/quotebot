@@ -142,7 +142,7 @@ export default async function legacyCommandHandler(
         text !== "add" &&
         text !== "remove" &&
         text !== "delete" &&
-        text.split(" ").length > 2
+        text.split(" ").length >= 2
       ) {
         return await addQuote(message, text)
       }

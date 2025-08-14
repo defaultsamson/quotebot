@@ -11,7 +11,7 @@ export function readServerData(serverID: string): ServerData {
   if (CACHE.has(serverID)) return CACHE.get(serverID)!
 
   const filePath = `${DATA_DIR}${serverID}.json`
-
+  
   if (!fs.existsSync(filePath)) {
     console.warn(`Server data file not found for server ID: ${serverID}`)
 

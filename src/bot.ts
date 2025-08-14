@@ -2,6 +2,47 @@ import { REST, Routes } from "discord.js"
 import { Client, Events, GatewayIntentBits } from "discord.js"
 import legacyCommandHandler from "./lib/legacy-command-handler.js"
 
+/** LEGACY -- code for converting legacy quotes.json and removed.json into new format.
+const newData: ServerData = {
+  nextInternalID: 0,
+  serverID: "269878855831912449",
+  quotes: [],
+  removed: [],
+  adminIDs: [],
+  channelID: null,
+}
+
+const legacyData = fs.readFileSync("./quotes.json", "utf-8")
+const parsedQuotes: any[] = JSON.parse(legacyData)
+for (const d of parsedQuotes) {
+  const newQuote = {
+    internalID: newData.nextInternalID,
+    quote: d.quote,
+    authorID: d.author_id ?? null,
+    date: d.date,
+    upvoteIDs: [],
+    downvoteIDs: [],
+  }
+  newData.nextInternalID++
+  newData.quotes.push(newQuote)
+}
+const legacyRemoved = fs.readFileSync("./removed.json", "utf-8")
+const removedQuotes: any[] = JSON.parse(legacyRemoved)
+for (const d of removedQuotes) {
+  const newQuote = {
+    internalID: newData.nextInternalID,
+    quote: d.quote,
+    authorID: d.author_id ?? null,
+    date: d.date,
+    upvoteIDs: [],
+    downvoteIDs: [],
+  }
+  newData.nextInternalID++
+  newData.removed.push(newQuote)
+}
+writeServerData(newData)
+**/
+
 import config from "../config.json" with { type: "json" }
 const TOKEN = config.token
 const CLIENT_ID = config.clientID
