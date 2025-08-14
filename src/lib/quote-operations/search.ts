@@ -5,6 +5,7 @@ import {
 } from "discord.js"
 import fuzzysort from "fuzzysort"
 import { readServerData } from "../server-data/read-write.js"
+import { displayQuoteInChannel } from "./display-in-channel.js"
 
 export async function searchQuote(
   incoming: ChatInputCommandInteraction | Message,
@@ -39,10 +40,8 @@ export async function searchQuote(
     await reply("No matches found")
   } else if (results.length === 1) {
     // 1 Match (don't show % match)
-    const resultString = results.map(
-      (o) => `#${data.quotes.indexOf(o.obj) + 1}: ${o.obj.quote}`
-    )[0]
-    await reply(resultString)
+    // Since there was only 1 match, show the quote with voting reactions
+    await displayQuoteInChannel(incoming, data, results[0].obj, true)
   } else {
     // Display the results
     const resultString = results
@@ -54,6 +53,6 @@ export async function searchQuote(
       )
       .join("\n")
 
-      await reply(`Found ${results.length} quotes:\n${resultString}`)
+    await reply(`Found ${results.length} quotes:\n${resultString}`)
   }
 }

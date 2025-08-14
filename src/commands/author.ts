@@ -78,7 +78,10 @@ export default {
     if (!interaction) return
     if (!(interaction.member instanceof GuildMember)) {
       interaction.reply({
-        content: "This command can only be used in a server.",
+        content:
+          interaction?.locale === Locale.Swedish
+            ? "Detta kommando kan endast användas i en server."
+            : "This command can only be used in a server.",
         flags: MessageFlags.Ephemeral,
       })
       return
