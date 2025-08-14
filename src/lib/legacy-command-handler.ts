@@ -4,6 +4,8 @@ import { getRandom } from "./quote-operations/get-random.js"
 import { getQuote } from "./quote-operations/get.js"
 import { removeQuote } from "./quote-operations/remove.js"
 import { searchQuote } from "./quote-operations/search.js"
+import { getInfo } from "./quote-operations/get-info.js"
+import dedent from "dedent"
 
 /** @deprecated This is just here for legacy support for `!q` commands and such. */
 export default async function legacyCommandHandler(
@@ -35,7 +37,7 @@ export default async function legacyCommandHandler(
   ) {
     const id = parseInt(splitRaw[1])
     if (!isNaN(id)) {
-      return removeQuote(message, id)
+      return await removeQuote(message, id)
     }
   }
 
@@ -57,7 +59,7 @@ export default async function legacyCommandHandler(
   ) {
     const id = parseInt(splitRaw[2])
     if (!isNaN(id)) {
-      return removeQuote(message, id)
+      return await removeQuote(message, id)
     }
   }
 
@@ -74,7 +76,49 @@ export default async function legacyCommandHandler(
   for (const m of searchMatches) // Find a match and get the message
     if (raw.startsWith(m)) {
       const text = raw.slice(m.length).trim()
-      return await searchQuote(message, text)
+      // Note: When doing a legacy search, limit it to just 1 result
+      return await searchQuote(message, text, 1)
+    }
+
+  // Check for info commands
+  const infoMatches = [
+    // Note: start with the longest ones to avoid putting keywords as part of the quote
+    "!quote info",
+    "!quotes info",
+    "!q info",
+    "!info quote",
+    "!info",
+  ]
+  for (const m of infoMatches) // Find a match and get the message
+    if (raw.startsWith(m)) {
+      const text = raw.slice(m.length).trim()
+      const extractedNum = Number(text)
+      if (!isNaN(extractedNum)) {
+        // If we've been given a proper number...
+        return await getInfo(message, extractedNum)
+      }
+    }
+
+  // Check for help commands
+  const helpMatches = [
+    // Note: start with the longest ones to avoid putting keywords as part of the quote
+    "!quote help",
+    "!quotes help",
+    "!q help",
+    "!help quote",
+    "!help",
+  ]
+  for (const m of helpMatches) // Find a match and get the message
+    if (raw.startsWith(m)) {
+      message.reply(dedent`
+        ${"```"}
+        !quote
+        !search
+        !remove
+        !info
+        ${"```"}
+      `)
+      return
     }
 
   // Finally, check for add commands
@@ -85,15 +129,21 @@ export default async function legacyCommandHandler(
     "!q add",
     "!add quote",
     "!quote", // Note: at this point we will have already handled the # and random commands, so checking for !quote is safe
-    "!q",
     "!quotes",
     "!add",
     "!qadd",
+    // Note: check for the shortest one last...
+    "!q",
   ]
   for (const m of addMatches) // Find a match and get the message
     if (raw.startsWith(m)) {
       const text = raw.slice(m.length).trim()
-      if (text !== "add" && text !== "remove" && text !== "delete") {
+      if (
+        text !== "add" &&
+        text !== "remove" &&
+        text !== "delete" &&
+        text.split(" ").length > 2
+      ) {
         return await addQuote(message, text)
       }
     }

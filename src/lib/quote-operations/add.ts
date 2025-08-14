@@ -20,15 +20,20 @@ export async function addQuote(
       ? incoming
       : null
 
+  // This could take longer than 3 seconds
+  if (!interaction?.deferred) await interaction?.deferReply()
+  async function reply(m: string) {
+    await message?.reply({ content: m })
+    await interaction?.editReply({ content: m })
+  }
+
   if (!text || text.trim() === "") {
     // Empty quote
-    const reply =
+    return await reply(
       interaction?.locale === Locale.Swedish
         ? "Vänligen ange en giltig offert."
         : "Please provide a valid quote."
-    await message?.reply({ content: reply })
-    await interaction?.reply({ content: reply, flags: MessageFlags.Ephemeral })
-    return
+    )
   }
 
   const data = readServerData(incoming.guildId)
@@ -49,10 +54,9 @@ export async function addQuote(
   displayQuoteInChannel(incoming, data, newQuote, false)
 
   // Success
-  const reply =
+  await reply(
     interaction?.locale === Locale.Swedish
       ? `Citat #${data.quotes.length} tillagt.`
       : `Quote #${data.quotes.length} added.`
-  await message?.reply({ content: reply })
-  await interaction?.reply({ content: reply, flags: MessageFlags.Ephemeral })
+  )
 }

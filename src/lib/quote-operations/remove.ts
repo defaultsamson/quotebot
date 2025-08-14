@@ -15,6 +15,13 @@ export async function removeQuote(incoming: Interaction | Message, id: number) {
       ? incoming
       : null
 
+  // This could take longer than 3 seconds
+  if (!interaction?.deferred) await interaction?.deferReply()
+  async function reply(m: string) {
+    await message?.reply({ content: m })
+    await interaction?.editReply({ content: m })
+  }
+
   const data = readServerData(incoming.guildId)
 
   // Note: `id` starts at 1
@@ -29,19 +36,17 @@ export async function removeQuote(incoming: Interaction | Message, id: number) {
     writeServerData(data)
 
     // Success
-    const reply =
+    await reply(
       interaction?.locale === Locale.Swedish
         ? `Citat med ID ${id} borttaget`
         : `Quote with ID ${id} removed.`
-    await message?.reply({ content: reply })
-    await interaction?.reply({ content: reply })
+    )
   } else {
     // If the ID is out of range
-    const reply =
+    await reply(
       interaction?.locale === Locale.Swedish
         ? `Citat med ID ${id} finns inte. Max ${data.quotes.length}`
         : `Quote with ID ${id} does not exist. Max ${data.quotes.length}`
-    await message?.reply({ content: reply })
-    await interaction?.reply({ content: reply, flags: MessageFlags.Ephemeral })
+    )
   }
 }

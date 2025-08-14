@@ -2,7 +2,7 @@ import { BaseInteraction, Interaction, Message } from "discord.js"
 import ServerData from "../../types/server-data.js"
 import { Quote } from "../../types/quote.js"
 import { Emoji } from "../../types/emojis.js"
-import { EMOJI_CACHE } from "../emoji-cache.js"
+import { REACTION_CACHE } from "../reactions/reaction-cache.js"
 
 // 5mins
 const VOTING_DURATION = 1000 * 5 * 60
@@ -26,6 +26,13 @@ export async function displayQuoteInChannel(
       ? incoming
       : null
 
+  // This could take longer than 3 seconds
+  if (!interaction?.deferred) await interaction?.deferReply()
+  async function sendReply(m: string) {
+    await message?.reply({ content: m })
+    await interaction?.editReply({ content: m })
+  }
+
   // Display the quote with internalID `quoteInternalID`
   // Find it in `data`
   // if channelID is provided, display the quote there.
@@ -33,25 +40,13 @@ export async function displayQuoteInChannel(
 
   // Fetch the channel and send the quote
   const guild = incoming.guild
-  if (!guild) {
-    await message?.reply({ content: "InternalError: Server not found." })
-    await interaction?.editReply({
-      content: "InternalError: Server not found.",
-    })
-    return
-  }
+  if (!guild) return await sendReply("InternalError: Server not found.")
 
   // Get the channel with a provided ID, or with ServerData channelID
   const targetChannel = reply ? incoming.channelId : data.channelID
   const channel = guild.channels.cache.get(targetChannel)
   if (!channel || !channel.isTextBased()) {
-    await message?.reply({
-      content: `InternalError: Channel ${targetChannel} not found.`,
-    })
-    await interaction?.editReply({
-      content: `InternalError: Channel ${targetChannel} not found.`,
-    })
-    return
+    return await sendReply(`InternalError: Channel ${targetChannel} not found.`)
   }
 
   /**
@@ -59,15 +54,17 @@ export async function displayQuoteInChannel(
    * which allows users to upvote and downvote quotes.
    */
   async function addEmojiToMessage(sentMessage: Message) {
-    EMOJI_CACHE.set(sentMessage.id, quote.internalID)
+    REACTION_CACHE.set(sentMessage.id, quote.internalID)
 
     // Add reactions for voting
     await sentMessage.react(Emoji.Plus)
     await sentMessage.react(Emoji.Minus)
+
+    // Automatically clear the emojis after the VOTING_DURATION
     await new Promise((resolve) => setTimeout(resolve, VOTING_DURATION)).then(
       () => {
         sentMessage.reactions.removeAll()
-        EMOJI_CACHE.delete(sentMessage.id)
+        REACTION_CACHE.delete(sentMessage.id)
       }
     )
   }

@@ -95,6 +95,18 @@ export default {
             })
             .setRequired(true)
         )
+        .addNumberOption((option) =>
+          option
+            .setName("limit")
+            .setDescription("Number of results to return")
+            .setNameLocalizations({
+              [Locale.Swedish]: "gräns",
+            })
+            .setDescriptionLocalizations({
+              [Locale.Swedish]: "Antal resultat att returnera",
+            })
+            .setRequired(false)
+        )
     )
     .addSubcommand((sub) =>
       sub
@@ -177,7 +189,8 @@ export default {
       }
       case QuoteAction.Search: {
         const text = interaction.options.getString("text", true)
-        searchQuote(interaction, text)
+        const limit = interaction.options.getNumber("limit", false)
+        searchQuote(interaction, text, limit)
         return
       }
       case QuoteAction.Remove: {
@@ -192,13 +205,6 @@ export default {
       case QuoteAction.Info: {
         const id = interaction.options.getInteger("id", true)
         getInfo(interaction, id)
-        return
-      }
-      default: {
-        interaction.reply({
-          content: "Unknown subcommand.",
-          flags: MessageFlags.Ephemeral,
-        })
         return
       }
     }

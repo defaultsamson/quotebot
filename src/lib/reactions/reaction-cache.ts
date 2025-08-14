@@ -1,5 +1,5 @@
 /** A map of message ID to unique quote ID */
-export const EMOJI_CACHE = new Map<string, number>()
+export const REACTION_CACHE = new Map<string, number>()
 
 /**
  * The primary function if this cache is to be able to add a message when it is sent,

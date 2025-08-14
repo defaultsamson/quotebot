@@ -18,5 +18,7 @@ export async function getRandom(
   const data = readServerData(incoming.guildId)
   // ID is +1 because IDs start at 1, not 0
   const randomID = Math.floor(Math.random() * data.quotes.length) + 1
+
+  // Allow getQuote to handle this
   await getQuote(incoming, randomID)
 }

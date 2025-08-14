@@ -22,8 +22,12 @@ export async function getQuote(incoming: Interaction | Message, id: number) {
     return await getRandom(incoming)
   }
 
-  // It could potentially take more than 3 seconds to load this
+  // This could take longer than 3 seconds
   if (!interaction?.deferred) await interaction?.deferReply()
+  async function reply(m: string) {
+    await message?.reply({ content: m })
+    await interaction?.editReply({ content: m })
+  }
 
   const data = readServerData(incoming.guildId)
 
@@ -33,11 +37,10 @@ export async function getQuote(incoming: Interaction | Message, id: number) {
     displayQuoteInChannel(incoming, data, data.quotes[id - 1], true)
   } else {
     // If the ID is out of range
-    const reply =
+    await reply(
       interaction?.locale === Locale.Swedish
         ? `Citat med ID ${id} finns inte. Max ${data.quotes.length}`
         : `Quote with ID ${id} does not exist. Max ${data.quotes.length}`
-    await message?.reply({ content: reply })
-    await interaction?.editReply({ content: reply })
+    )
   }
 }
