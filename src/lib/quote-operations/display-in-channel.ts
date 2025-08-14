@@ -26,6 +26,11 @@ export async function displayQuoteInChannel(
       ? incoming
       : null
 
+  // If There's no channel ID, force a reply
+  if (!data.channelID) {
+    reply = true
+  }
+
   // This could take longer than 3 seconds
   if (!interaction?.deferred) await interaction?.deferReply()
   async function sendReply(m: string) {
