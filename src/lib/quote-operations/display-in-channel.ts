@@ -62,8 +62,8 @@ export async function displayQuoteInChannel(
     REACTION_CACHE.set(sentMessage.id, quote.internalID)
 
     // Add reactions for voting
-    await sentMessage.react(Emoji.Plus)
-    await sentMessage.react(Emoji.Minus)
+    await sentMessage.react(data.customPlus ?? Emoji.Plus)
+    await sentMessage.react(data.customMinus ?? Emoji.Minus)
 
     // Automatically clear the emojis after the VOTING_DURATION
     await new Promise((resolve) => setTimeout(resolve, VOTING_DURATION)).then(

@@ -9,4 +9,8 @@ export default interface ServerData {
   adminIDs: string[]
   /** The ID of the channel to send quotes to. */
   channelID: string | null
+  /** Optional custom emoji for upvotes. */
+  customPlus?: string
+  /** Optional custom emoji for downvotes. */
+  customMinus?: string
 }

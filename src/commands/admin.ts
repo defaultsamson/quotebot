@@ -67,6 +67,47 @@ export default {
             .setName("remove")
             .setDescription("Remove the channel for quotes from the bot")
         )
+    )
+    .addSubcommandGroup((group) =>
+      group
+        .setName("emoji")
+        .setDescription("Sets the custom emojis for quotes")
+        .addSubcommand((sub) =>
+          sub
+            .setName("set")
+            .setDescription("Set the emoji")
+            .addStringOption((option) =>
+              option
+                .setName("emote")
+                .setDescription("The emoji mapping")
+                .setRequired(true)
+                .setChoices([
+                  { name: "upvote", value: "upvote" },
+                  { name: "downvote", value: "downvote" },
+                ])
+            )
+            .addStringOption((option) =>
+              option
+                .setName("value")
+                .setDescription("The emoji to use")
+                .setRequired(true)
+            )
+        )
+        .addSubcommand((sub) =>
+          sub
+            .setName("remove")
+            .setDescription("Remove the channel for quotes from the bot")
+            .addStringOption((option) =>
+              option
+                .setName("emote")
+                .setDescription("The emoji mapping")
+                .setRequired(true)
+                .setChoices([
+                  { name: "upvote", value: "upvote" },
+                  { name: "downvote", value: "downvote" },
+                ])
+            )
+        )
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -109,6 +150,54 @@ export default {
           "This server has no admins. Run the command `/admin users claim` to become the first admin.",
       })
       return
+    }
+
+    if (subcommandGroup === "emoji") {
+      switch (subcommand) {
+        case "set": {
+          const emote = interaction.options.getString("emote")
+          const value = interaction.options.getString("value")
+
+          switch (emote) {
+            case "upvote":
+              // Handle upvote emoji
+              data.customPlus = value
+              break
+            case "downvote":
+              // Handle downvote emoji
+              data.customMinus = value
+              break
+          }
+
+          writeServerData(data)
+
+          await interaction.editReply({
+            content: `Emoji mapping set: ${emote} -> ${value}`,
+          })
+          return
+        }
+        case "remove": {
+          const emote = interaction.options.getString("emote")
+
+          switch (emote) {
+            case "upvote":
+              // Handle upvote emoji
+              delete data.customPlus
+              break
+            case "downvote":
+              // Handle downvote emoji
+              delete data.customMinus
+              break
+          }
+
+          writeServerData(data)
+
+          await interaction.editReply({
+            content: `Emoji mapping removed: ${emote}`,
+          })
+          return
+        }
+      }
     }
 
     if (subcommandGroup === "channel") {

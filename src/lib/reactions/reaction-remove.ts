@@ -33,6 +33,7 @@ export async function reactionRemove(
   // Handle the reaction (e.g. add it to the quote)
   switch (reaction.emoji.toString()) {
     case Emoji.Plus:
+    case data.customPlus:
       {
         // Remove their upvote
         quote.upvoteIDs = quote.upvoteIDs.filter((id) => id !== user.id)
@@ -40,6 +41,7 @@ export async function reactionRemove(
       }
       break
     case Emoji.Minus:
+    case data.customMinus:
       {
         // Remove their downvote
         quote.downvoteIDs = quote.downvoteIDs.filter((id) => id !== user.id)

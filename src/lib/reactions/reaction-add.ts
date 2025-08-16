@@ -32,6 +32,7 @@ export async function reactionAdd(
 
   // Handle the reaction (e.g. add it to the quote)
   switch (reaction.emoji.toString()) {
+    case data.customPlus:
     case Emoji.Plus:
       {
         // Add their upvote
@@ -44,7 +45,7 @@ export async function reactionAdd(
 
         // On the server-side, remove any non-upvote reactions
         const nonPlusReactions = mess.reactions.cache.filter(
-          (r) => r.emoji.toString() !== Emoji.Plus
+          (r) => r.emoji.toString() !== (data.customPlus ?? Emoji.Plus)
         )
         if (nonPlusReactions.size > 0) {
           for (const reaction of nonPlusReactions.values()) {
@@ -53,6 +54,7 @@ export async function reactionAdd(
         }
       }
       break
+    case data.customMinus:
     case Emoji.Minus:
       {
         // Add their downvote
@@ -65,7 +67,7 @@ export async function reactionAdd(
 
         // On the server-side, remove any non-downvote reactions
         const nonMinusReactions = mess.reactions.cache.filter(
-          (r) => r.emoji.toString() !== Emoji.Minus
+          (r) => r.emoji.toString() !== (data.customMinus ?? Emoji.Minus)
         )
         if (nonMinusReactions.size > 0) {
           for (const reaction of nonMinusReactions.values()) {

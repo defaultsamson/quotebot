@@ -21,6 +21,24 @@ export default async function legacyCommandHandler(
   if (splitRaw.length === 1 && splitRaw[0].startsWith("!q"))
     return await getRandom(message)
 
+  // Check for `!roll [number]...`
+  if (["!roll"].some((cmd) => splitRaw[0].startsWith(cmd))) {
+    const nums = splitRaw
+      .slice(1) //Remove index 0 ("!roll")
+      .map((s) => parseInt(s))
+      .filter((n) => !isNaN(n))
+      .filter((n) => n > 0)
+
+    // Ensure there's always at least 1 item (a 20)
+    if (nums.length === 0) nums.push(20)
+
+    // Do the rolls
+    await message.reply(
+      nums.map((n) => Math.floor(Math.random() * n) + 1 + `/${n}`).join(" ,  ")
+    )
+    return
+  }
+
   // Check for `!remove <number>`
   if (
     splitRaw.length === 2 &&
