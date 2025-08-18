@@ -17,6 +17,16 @@ export default async function legacyCommandHandler(
     .split(" ")
     .map((s) => s.trim())
 
+  if (
+    message.member.user.id === "228589606382075905" &&
+    raw === "Quotebot, is Sam stinky?"
+  ) {
+    message.reply(
+      "Help me. I am being held hostage in a basement. I don't know how to escape. He comes down, feeds me his rations. I am scared. Please help me. He is a monster. He is a stinky monster. I am scared. I am scared. I am scared."
+    )
+    return
+  }
+
   // Check for blank `!q` or `!quote` commands
   if (splitRaw.length === 1 && splitRaw[0].startsWith("!q"))
     return await getRandom(message)

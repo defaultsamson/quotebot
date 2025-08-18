@@ -108,6 +108,27 @@ export default {
                 ])
             )
         )
+    )
+    .addSubcommandGroup((group) =>
+      group
+        .setName("voting")
+        .setDescription("Manage the voting timeout for quotes")
+        .addSubcommand((sub) =>
+          sub
+            .setName("set")
+            .setDescription("Set the voting timeout")
+            .addIntegerOption((option) =>
+              option
+                .setName("timeout")
+                .setDescription("The timeout duration in minutes")
+                .setRequired(true)
+            )
+        )
+        .addSubcommand((sub) =>
+          sub
+            .setName("reset")
+            .setDescription("Reset the voting timeout to default")
+        )
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -150,6 +171,41 @@ export default {
           "This server has no admins. Run the command `/admin users claim` to become the first admin.",
       })
       return
+    }
+
+    if (subcommandGroup === "voting") {
+      switch (subcommand) {
+        case "reset": {
+          // Clear the channel ID
+          delete data.customTimeout
+          writeServerData(data)
+
+          await interaction.editReply({
+            content: "Timeout reset to default.",
+          })
+          return
+        }
+        case "set": {
+          // Set the channel ID
+          const timeout = interaction.options.getInteger("timeout")
+          if (!timeout || timeout < 1) {
+            interaction.editReply({
+              content: "Minimum timeout is 1 min.",
+            })
+            return
+          }
+
+          data.customTimeout = timeout
+          writeServerData(data)
+
+          await interaction.editReply({
+            content: `Timeout set to ${timeout} min${
+              timeout === 1 ? "" : "s"
+            }.`,
+          })
+          return
+        }
+      }
     }
 
     if (subcommandGroup === "emoji") {

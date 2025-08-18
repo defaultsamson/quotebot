@@ -13,4 +13,6 @@ export default interface ServerData {
   customPlus?: string
   /** Optional custom emoji for downvotes. */
   customMinus?: string
+  /** Optional custom timeout for the emojis to disappear */
+  customTimeout?: number
 }

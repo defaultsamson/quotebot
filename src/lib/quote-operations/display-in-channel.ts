@@ -5,7 +5,7 @@ import { Emoji } from "../../types/emojis.js"
 import { REACTION_CACHE } from "../reactions/reaction-cache.js"
 
 // 5mins
-const VOTING_DURATION = 1000 * 5 * 60
+const DEFAULT_DURATION = 1000 * 5 * 60
 
 /**
  * This function is the backbone is displaying quotes as messages in Discord.
@@ -66,12 +66,16 @@ export async function displayQuoteInChannel(
     await sentMessage.react(data.customMinus ?? Emoji.Minus)
 
     // Automatically clear the emojis after the VOTING_DURATION
-    await new Promise((resolve) => setTimeout(resolve, VOTING_DURATION)).then(
-      () => {
-        sentMessage.reactions.removeAll()
-        REACTION_CACHE.delete(sentMessage.id)
-      }
-    )
+    await new Promise((resolve) =>
+      setTimeout(
+        resolve,
+        // If there's a custom timeout, interpret it as minutes
+        data.customTimeout ? data.customTimeout * 60 * 1000 : DEFAULT_DURATION
+      )
+    ).then(() => {
+      sentMessage.reactions.removeAll()
+      REACTION_CACHE.delete(sentMessage.id)
+    })
   }
 
   const response = {
