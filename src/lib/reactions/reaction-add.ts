@@ -44,11 +44,13 @@ export async function reactionAdd(
         writeServerData(data)
 
         // On the server-side, remove any non-upvote reactions
-        const nonPlusReactions = mess.reactions.cache.filter(
-          (r) => r.emoji.toString() !== (data.customPlus ?? Emoji.Plus)
+        const minusReactions = mess.reactions.cache.filter(
+          (r) =>
+            r.emoji.toString() === data.customMinus ||
+            r.emoji.toString() === Emoji.Minus
         )
-        if (nonPlusReactions.size > 0) {
-          for (const reaction of nonPlusReactions.values()) {
+        if (minusReactions.size > 0) {
+          for (const reaction of minusReactions.values()) {
             await reaction.users.remove(user.id)
           }
         }
@@ -66,11 +68,13 @@ export async function reactionAdd(
         writeServerData(data)
 
         // On the server-side, remove any non-downvote reactions
-        const nonMinusReactions = mess.reactions.cache.filter(
-          (r) => r.emoji.toString() !== (data.customMinus ?? Emoji.Minus)
+        const plusReactions = mess.reactions.cache.filter(
+          (r) =>
+            r.emoji.toString() === data.customPlus ||
+            r.emoji.toString() === Emoji.Plus
         )
-        if (nonMinusReactions.size > 0) {
-          for (const reaction of nonMinusReactions.values()) {
+        if (plusReactions.size > 0) {
+          for (const reaction of plusReactions.values()) {
             await reaction.users.remove(user.id)
           }
         }

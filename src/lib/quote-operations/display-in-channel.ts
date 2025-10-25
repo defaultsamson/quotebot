@@ -73,7 +73,16 @@ export async function displayQuoteInChannel(
         data.customTimeout ? data.customTimeout * 60 * 1000 : DEFAULT_DURATION
       )
     ).then(() => {
-      sentMessage.reactions.removeAll()
+      // sentMessage.reactions.removeAll()
+      // Note: Only remove the bot's own reactions, leave custom ones
+      const botReactions = sentMessage.reactions.cache.filter(
+        (r) =>
+          r.emoji.toString() === data.customPlus ||
+          r.emoji.toString() === Emoji.Plus ||
+          r.emoji.toString() === data.customMinus ||
+          r.emoji.toString() === Emoji.Minus
+      )
+      botReactions.forEach((reaction) => reaction.remove())
       REACTION_CACHE.delete(sentMessage.id)
     })
   }
