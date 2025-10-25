@@ -151,7 +151,7 @@ export default async function legacyCommandHandler(
     if (raw.startsWith(m)) {
       const text = raw.slice(m.length).trim()
       const extractedNum = Number(text)
-      if (!isNaN(extractedNum)) {
+      if (!isNaN(extractedNum) && text !== "" && text !== null) {
         // If we've been given a proper number...
         return await getInfo(message, extractedNum)
       }
