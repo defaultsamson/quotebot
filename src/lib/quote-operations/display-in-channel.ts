@@ -34,8 +34,14 @@ export async function displayQuoteInChannel(
   // This could take longer than 3 seconds
   if (!interaction?.deferred) await interaction?.deferReply()
   async function sendReply(m: string) {
-    await message?.reply({ content: m })
-    await interaction?.editReply({ content: m })
+    await message?.reply({
+      content: m,
+      allowedMentions: { parse: [] }, // Prevent pings
+    })
+    await interaction?.editReply({
+      content: m,
+      allowedMentions: { parse: [] }, // Prevent pings
+    })
   }
 
   // Display the quote with internalID `quoteInternalID`

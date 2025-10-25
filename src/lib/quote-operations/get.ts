@@ -32,15 +32,16 @@ export async function getQuote(incoming: Interaction | Message, id?: number) {
   const data = readServerData(incoming.guildId)
 
   // Note: `id` starts at 1
-  if (data.quotes.length >= id && id > 0) {
-    // If the quote exists, display it with emoji reactions
-    displayQuoteInChannel(incoming, data, data.quotes[id - 1], true)
-  } else {
+  if (data.quotes.length < id || id < 1) {
     // If the ID is out of range
     await reply(
       interaction?.locale === Locale.Swedish
         ? `Citat med ID ${id} finns inte. Max ${data.quotes.length}`
         : `Quote with ID ${id} does not exist. Max ${data.quotes.length}`
     )
+    return
   }
+
+  // If the quote exists, display it with emoji reactions
+  await displayQuoteInChannel(incoming, data, data.quotes[id - 1], true)
 }

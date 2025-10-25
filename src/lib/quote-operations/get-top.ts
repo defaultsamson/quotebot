@@ -24,13 +24,13 @@ export async function getTopQuotes(
 
   // This could take longer than 3 seconds
   if (!interaction?.deferred) await interaction?.deferReply()
-  async function replyEmbed(e: EmbedBuilder) {
-    await message?.reply({ embeds: [e] })
-    await interaction?.editReply({ embeds: [e] })
-  }
   async function reply(m: string) {
     await message?.reply({ content: m })
     await interaction?.editReply({ content: m })
+  }
+  async function replyEmbed(e: EmbedBuilder) {
+    await message?.reply({ embeds: [e] })
+    await interaction?.editReply({ embeds: [e] })
   }
 
   const data = readServerData(incoming.guildId)

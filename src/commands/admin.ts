@@ -96,7 +96,7 @@ export default {
         .addSubcommand((sub) =>
           sub
             .setName("remove")
-            .setDescription("Remove the channel for quotes from the bot")
+            .setDescription("Remove an emoji mapping")
             .addStringOption((option) =>
               option
                 .setName("emote")
