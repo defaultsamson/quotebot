@@ -4,7 +4,6 @@ import {
   ChatInputCommandInteraction,
   Locale,
   MessageFlags,
-  CacheType,
 } from "discord.js"
 import { Command } from "../types/command.js"
 import { addQuote } from "../lib/quote-operations/add.js"
@@ -95,7 +94,7 @@ export default {
             })
             .setRequired(true)
         )
-        .addNumberOption((option) =>
+        .addIntegerOption((option) =>
           option
             .setName("top")
             .setDescription("Get the top number of results")
@@ -189,7 +188,7 @@ export default {
       }
       case QuoteAction.Search: {
         const text = interaction.options.getString("text", true)
-        const limit = interaction.options.getNumber("top", false)
+        const limit = interaction.options.getInteger("top", false)
         searchQuote(interaction, text, limit)
         return
       }

@@ -9,7 +9,7 @@ import { getRandom } from "./get-random.js"
 import { readServerData } from "../server-data/read-write.js"
 import { displayQuoteInChannel } from "./display-in-channel.js"
 
-export async function getQuote(incoming: Interaction | Message, id: number) {
+export async function getQuote(incoming: Interaction | Message, id?: number) {
   /** @deprecated just here for legacy `!q` commands */
   const message = incoming instanceof Message ? incoming : null
   const interaction =
