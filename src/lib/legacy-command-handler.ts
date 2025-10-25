@@ -6,6 +6,8 @@ import { removeQuote } from "./quote-operations/remove.js"
 import { searchQuote } from "./quote-operations/search.js"
 import { getInfo } from "./quote-operations/get-info.js"
 import dedent from "dedent"
+import { getTopQuotes } from "./quote-operations/get-top.js"
+import { getBottomQuotes } from "./quote-operations/get-bottom.js"
 
 /** @deprecated This is just here for legacy support for `!q` commands and such. */
 export default async function legacyCommandHandler(
@@ -20,6 +22,20 @@ export default async function legacyCommandHandler(
   // Check for blank `!q` or `!quote` commands
   if (splitRaw.length === 1 && splitRaw[0].startsWith("!q"))
     return await getRandom(message)
+
+  // Check for blank `!top` commands
+  if (
+    splitRaw.length === 1 &&
+    ["!top", "!up", "!upvoted"].some((c) => splitRaw[0].startsWith(c))
+  )
+    return await getTopQuotes(message)
+
+  // Check for blank `!bottom` commands
+  if (
+    splitRaw.length === 1 &&
+    ["!bottom", "!down", "!downvoted"].some((c) => splitRaw[0].startsWith(c))
+  )
+    return await getBottomQuotes(message)
 
   // Check for `!roll [number]...`
   if (["!roll"].some((cmd) => splitRaw[0].startsWith(cmd))) {
@@ -37,6 +53,30 @@ export default async function legacyCommandHandler(
       nums.map((n) => Math.floor(Math.random() * n) + 1 + `/${n}`).join(" ,  ")
     )
     return
+  }
+
+  // Check for `!top <number>`
+  if (
+    splitRaw.length === 2 &&
+    ["!top", "!up", "!upvoted"].some((cmd) => splitRaw[0].startsWith(cmd))
+  ) {
+    const amount = parseInt(splitRaw[1])
+    if (!isNaN(amount)) {
+      return await getTopQuotes(message, amount)
+    }
+  }
+
+  // Check for `!bottom <number>`
+  if (
+    splitRaw.length === 2 &&
+    ["!bottom", "!down", "!downvoted"].some((cmd) =>
+      splitRaw[0].startsWith(cmd)
+    )
+  ) {
+    const amount = parseInt(splitRaw[1])
+    if (!isNaN(amount)) {
+      return await getBottomQuotes(message, amount)
+    }
   }
 
   // Check for `!remove <number>`
@@ -134,6 +174,8 @@ export default async function legacyCommandHandler(
         !search
         !remove
         !info
+        !top
+        !bottom
         ${"```"}
       `)
       return

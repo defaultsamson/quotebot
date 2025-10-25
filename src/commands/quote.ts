@@ -12,6 +12,8 @@ import { removeQuote } from "../lib/quote-operations/remove.js"
 import { getRandom } from "../lib/quote-operations/get-random.js"
 import { getQuote } from "../lib/quote-operations/get.js"
 import { getInfo } from "../lib/quote-operations/get-info.js"
+import { getTopQuotes } from "../lib/quote-operations/get-top.js"
+import { getBottomQuotes } from "../lib/quote-operations/get-bottom.js"
 
 export enum QuoteAction {
   Get = "get",
@@ -20,12 +22,60 @@ export enum QuoteAction {
   Remove = "remove",
   Random = "random",
   Info = "info",
+  Top = "top",
+  Bottom = "bottom",
 }
 
 export default {
   data: new SlashCommandBuilder()
     .setName("quote")
     .setDescription("Get/add/remove quotes")
+    .addSubcommand((sub) =>
+      sub
+        .setName(QuoteAction.Top)
+        .setDescription("Show the top upvoted quotes in the server")
+        .setNameLocalizations({
+          [Locale.Swedish]: "topp",
+        })
+        .setDescriptionLocalizations({
+          [Locale.Swedish]: "Visa de mest uppvotade citaten i servern",
+        })
+        .addIntegerOption((option) =>
+          option
+            .setName("amount")
+            .setDescription("Number of top quotes to retrieve")
+            .setNameLocalizations({
+              [Locale.Swedish]: "antal",
+            })
+            .setDescriptionLocalizations({
+              [Locale.Swedish]: "Antal citat att hämta",
+            })
+            .setRequired(false)
+        )
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName(QuoteAction.Bottom)
+        .setDescription("Show the most downvoted quotes in the server")
+        .setNameLocalizations({
+          [Locale.Swedish]: "botten",
+        })
+        .setDescriptionLocalizations({
+          [Locale.Swedish]: "Visa de mest nedvotade citaten i servern",
+        })
+        .addIntegerOption((option) =>
+          option
+            .setName("amount")
+            .setDescription("Number of bottom quotes to retrieve")
+            .setNameLocalizations({
+              [Locale.Swedish]: "antal",
+            })
+            .setDescriptionLocalizations({
+              [Locale.Swedish]: "Antal citat att hämta",
+            })
+            .setRequired(false)
+        )
+    )
     .addSubcommand((sub) =>
       sub
         .setName(QuoteAction.Get)
@@ -176,6 +226,16 @@ export default {
 
     const subcommand = interaction.options.getSubcommand()
     switch (subcommand) {
+      case QuoteAction.Top: {
+        const amount = interaction.options.getInteger("amount", false)
+        getTopQuotes(interaction, amount)
+        return
+      }
+      case QuoteAction.Bottom: {
+        const amount = interaction.options.getInteger("amount", false)
+        getBottomQuotes(interaction, amount)
+        return
+      }
       case QuoteAction.Get: {
         const id = interaction.options.getInteger("id", false)
         getQuote(interaction, id)
