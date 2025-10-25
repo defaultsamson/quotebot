@@ -1,6 +1,15 @@
-import { BaseInteraction, Interaction, Locale, Message } from "discord.js"
+import {
+  BaseInteraction,
+  EmbedBuilder,
+  Interaction,
+  Locale,
+  Message,
+  User,
+} from "discord.js"
 import { readServerData } from "../server-data/read-write.js"
 import dedent from "dedent"
+import { format } from "date-fns"
+import { Emoji } from "../../types/emojis.js"
 
 export async function getInfo(incoming: Interaction | Message, id: number) {
   /** @deprecated just here for legacy `!q` commands */
@@ -16,44 +25,93 @@ export async function getInfo(incoming: Interaction | Message, id: number) {
     await message?.reply({ content: m })
     await interaction?.editReply({ content: m })
   }
+  async function replyEmbed(e: EmbedBuilder) {
+    await message?.reply({
+      embeds: [e],
+      allowedMentions: { parse: [] }, // Prevent pings
+    })
+    await interaction?.editReply({
+      embeds: [e],
+      allowedMentions: { parse: [] }, // Prevent pings
+    })
+  }
 
   const data = readServerData(incoming.guildId)
 
   // Note: `id` starts at 1
-  if (data.quotes.length >= id && id > 0) {
-    // If the quote exists
-    const quote = data.quotes[id - 1]
-
-    let r: string
-    if (interaction?.locale === Locale.Swedish) {
-      r = dedent`Citat #${id}: ${quote.quote}
-      Författare: <@${quote.authorID}>
-      Datum: ${new Date(quote.date).toISOString()}
-      Upp-röster: ${
-        quote.upvoteIDs.map((id) => `<@${id}>`).join(", ") || "Ingen"
-      }
-      Ned-röster: ${
-        quote.downvoteIDs.map((id) => `<@${id}>`).join(", ") || "Ingen"
-      }
-      `
-    } else {
-      r = dedent`Quote #${id}: ${quote.quote}
-      Author: <@${quote.authorID}>
-      Date: ${new Date(quote.date).toISOString()}
-      Upvoted: ${quote.upvoteIDs.map((id) => `<@${id}>`).join(", ") || "None"}
-      Downvoted: ${
-        quote.downvoteIDs.map((id) => `<@${id}>`).join(", ") || "None"
-      }
-      `
-    }
-
-    await reply(r)
-  } else {
+  if (data.quotes.length < id || id < 1) {
     // If the ID is out of range
-    const r =
+    await reply(
       interaction?.locale === Locale.Swedish
         ? `Citat med ID ${id} finns inte. Max ${data.quotes.length}`
         : `Quote with ID ${id} does not exist. Max ${data.quotes.length}`
-    await reply(r)
+    )
+    return
   }
+
+  // If the quote exists
+  const quote = data.quotes[id - 1]
+
+  const embed = new EmbedBuilder().setTitle(`Quote #${id} Info`)
+  const swed = interaction?.locale === Locale.Swedish
+  const claimCommand = swed
+    ? `\`/auteur sätt id:${id} user:\``
+    : `\`/author set id:${id} user:\``
+
+  // embed.setThumbnail(
+  //   (incoming.member.user as User).displayAvatarURL({ size: 64 })
+  // )
+  embed.setThumbnail(
+    incoming.guild.members.cache
+      .get(quote.authorID)
+      ?.user?.displayAvatarURL({ size: 64 })
+  )
+
+  // Date
+  embed.addFields({
+    name: `:calendar_spiral:  ${swed ? `Datum` : `Date`}`,
+    value: `${format(new Date(quote.date), "yyyy MMM dd, HH:mm a")}`,
+    inline: true,
+  })
+  // Author
+  embed.addFields({
+    name: `:pencil2:  ${swed ? `Författare` : `Author`}`,
+    value: quote.authorID
+      ? `<@${quote.authorID}>`
+      : swed
+      ? `Okänd. Gör anspråk med\n${claimCommand}`
+      : `Unknown. Claim using\n${claimCommand}`,
+    inline: true,
+  })
+  // Quote row
+  embed.spliceFields(2, 0, {
+    name: `:speech_balloon:  ${swed ? `Citat` : `Quote`}`,
+    value: dedent`\
+      ${quote.quote}`,
+    inline: false,
+  })
+  // Upvotes
+  embed.addFields({
+    name: `${data.customPlus ?? Emoji.Plus}  ${
+      swed ? "Upp-voteringar" : "Upvotes"
+    }`,
+    value: `${
+      quote.upvoteIDs.map((id) => `<@${id}>`).join(", ") ||
+      (swed ? "Ingen" : "None")
+    }`,
+    inline: true,
+  })
+  // Downvotes
+  embed.addFields({
+    name: `${data.customMinus ?? Emoji.Minus}  ${
+      swed ? "Ned-voteringar" : "Downvotes"
+    }`,
+    value: `${
+      quote.downvoteIDs.map((id) => `<@${id}>`).join(", ") ||
+      (swed ? "Ingen" : "None")
+    }`,
+    inline: true,
+  })
+
+  await replyEmbed(embed)
 }
