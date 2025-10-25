@@ -1,5 +1,6 @@
 import {
   BaseInteraction,
+  Colors,
   EmbedBuilder,
   Interaction,
   Locale,
@@ -62,15 +63,24 @@ export async function getBottomQuotes(
   const embed = new EmbedBuilder().setTitle(
     `Bottom ${bottomQuotes.length} Quotes`
   )
+  embed.setColor(Colors.Blue)
   //  .setDescription(`Here are the top ${topQuotes.length} quotes by upvotes:`)
 
   for (const quote of bottomQuotes) {
     // Finds the original # of the quote in the server data
     const index = data.quotes.indexOf(quote)
+    let titleString = ""
+    titleString += `#${index + 1}`
+    titleString += `    `
+    titleString += `${quote.upvoteIDs.length}`
+    titleString += `  `
+    titleString += `${data.customPlus ?? Emoji.Plus}`
+    titleString += `    `
+    titleString += `${quote.downvoteIDs.length}`
+    titleString += `  `
+    titleString += `${data.customMinus ?? Emoji.Minus}`
     embed.addFields({
-      name: `#${index + 1}   ${quote.upvoteIDs.length}   ${
-        data.customPlus ?? Emoji.Plus
-      }   ${quote.downvoteIDs.length}   ${data.customMinus ?? Emoji.Minus}`,
+      name: titleString,
       value: `${quote.quote}`,
     })
   }

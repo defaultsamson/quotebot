@@ -1,5 +1,6 @@
 import {
   BaseInteraction,
+  Colors,
   EmbedBuilder,
   Interaction,
   Locale,
@@ -22,8 +23,14 @@ export async function getInfo(incoming: Interaction | Message, id: number) {
   // This could take longer than 3 seconds
   if (!interaction?.deferred) await interaction?.deferReply()
   async function reply(m: string) {
-    await message?.reply({ content: m })
-    await interaction?.editReply({ content: m })
+    await message?.reply({
+      content: m,
+      allowedMentions: { parse: [] }, // Prevent pings
+    })
+    await interaction?.editReply({
+      content: m,
+      allowedMentions: { parse: [] }, // Prevent pings
+    })
   }
   async function replyEmbed(e: EmbedBuilder) {
     await message?.reply({
@@ -61,11 +68,15 @@ export async function getInfo(incoming: Interaction | Message, id: number) {
   // embed.setThumbnail(
   //   (incoming.member.user as User).displayAvatarURL({ size: 64 })
   // )
-  embed.setThumbnail(
-    incoming.guild.members.cache
-      .get(quote.authorID)
-      ?.user?.displayAvatarURL({ size: 64 })
-  )
+  if (quote.authorID) {
+    embed.setThumbnail(
+      incoming.guild.members.cache
+        .get(quote.authorID)
+        ?.user?.displayAvatarURL({ size: 64 })
+    )
+  }
+
+  embed.setColor(Colors.Blue)
 
   // Date
   embed.addFields({

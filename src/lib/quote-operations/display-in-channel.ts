@@ -1,8 +1,16 @@
-import { BaseInteraction, Interaction, Message } from "discord.js"
+import {
+  BaseInteraction,
+  Colors,
+  EmbedBuilder,
+  Interaction,
+  Locale,
+  Message,
+} from "discord.js"
 import ServerData from "../../types/server-data.js"
 import { Quote } from "../../types/quote.js"
 import { Emoji } from "../../types/emojis.js"
 import { REACTION_CACHE } from "../reactions/reaction-cache.js"
+import { format } from "date-fns"
 
 // 5mins
 const DEFAULT_DURATION = 1000 * 5 * 60
@@ -17,7 +25,7 @@ export async function displayQuoteInChannel(
   data: ServerData,
   quote: Quote,
   /** Whether to reply, or send the quote into the main quotes channel */
-  reply: boolean
+  forceReply: boolean
 ) {
   /** @deprecated just here for legacy `!q` commands */
   const message = incoming instanceof Message ? incoming : null
@@ -28,20 +36,34 @@ export async function displayQuoteInChannel(
 
   // If There's no channel ID, force a reply
   if (!data.channelID) {
-    reply = true
+    forceReply = true
   }
 
   // This could take longer than 3 seconds
   if (!interaction?.deferred) await interaction?.deferReply()
-  async function sendReply(m: string) {
-    await message?.reply({
+  async function reply(m: string) {
+    const first = await message?.reply({
       content: m,
       allowedMentions: { parse: [] }, // Prevent pings
     })
-    await interaction?.editReply({
+    if (first) return first
+    const second = await interaction?.editReply({
       content: m,
       allowedMentions: { parse: [] }, // Prevent pings
     })
+    if (second) return second
+  }
+  async function replyEmbed(e: EmbedBuilder) {
+    const first = await message?.reply({
+      embeds: [e],
+      allowedMentions: { parse: [] }, // Prevent pings
+    })
+    if (first) return first
+    const second = await interaction?.editReply({
+      embeds: [e],
+      allowedMentions: { parse: [] }, // Prevent pings
+    })
+    if (second) return second
   }
 
   // Display the quote with internalID `quoteInternalID`
@@ -51,13 +73,13 @@ export async function displayQuoteInChannel(
 
   // Fetch the channel and send the quote
   const guild = incoming.guild
-  if (!guild) return await sendReply("InternalError: Server not found.")
+  if (!guild) return await reply("InternalError: Server not found.")
 
   // Get the channel with a provided ID, or with ServerData channelID
-  const targetChannel = reply ? incoming.channelId : data.channelID
+  const targetChannel = forceReply ? incoming.channelId : data.channelID
   const channel = guild.channels.cache.get(targetChannel)
   if (!channel || !channel.isTextBased()) {
-    return await sendReply(`InternalError: Channel ${targetChannel} not found.`)
+    return await reply(`InternalError: Channel ${targetChannel} not found.`)
   }
 
   /**
@@ -97,12 +119,44 @@ export async function displayQuoteInChannel(
     content: `#${data.quotes.indexOf(quote) + 1}: ${quote.quote}`,
   }
 
-  if (reply) {
+  const quoteID = data.quotes.indexOf(quote) + 1
+  const embed = new EmbedBuilder().setTitle(`Quote #${quoteID}`)
+  const swed = interaction?.locale === Locale.Swedish
+  const claimCommand = swed
+    ? `/auteur sätt id:${quoteID} user:`
+    : `/author set id:${quoteID} user:`
+
+  // Date
+  // embed.addFields({
+  //   name: `:calendar_spiral:  ${swed ? `Datum` : `Date`}`,
+  //   value: `${format(new Date(quote.date), "yyyy MMM dd, HH:mm a")}`,
+  //   inline: true,
+  // })
+
+  embed.setDescription(quote.quote)
+
+  embed.setColor(Colors.Blue)
+
+  if (quote.authorID) {
+    // embed.setThumbnail(
+    //   incoming.guild.members.cache
+    //     .get(quote.authorID)
+    //     ?.user?.displayAvatarURL({ size: 32 }) // Small inline display
+    // )
+  } else {
+    embed.setFooter({
+      text: swed
+        ? `Okänd författare. Gör anspråk med ${claimCommand}`
+        : `Unknown author. Claim using ${claimCommand}`,
+    })
+  }
+
+  if (forceReply) {
     // Reply directly to the user
-    await message?.reply(response).then(addEmojiToMessage)
-    await interaction?.editReply(response).then(addEmojiToMessage)
+    await replyEmbed(embed).then(addEmojiToMessage)
+    // await interaction?.editReply(response).then(addEmojiToMessage)
   } else {
     // Send the quote to the channel
-    await channel.send(response).then(addEmojiToMessage)
+    await channel.send({ embeds: [embed] }).then(addEmojiToMessage)
   }
 }

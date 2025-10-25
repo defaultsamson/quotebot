@@ -1,5 +1,6 @@
 import {
   BaseInteraction,
+  Colors,
   EmbedBuilder,
   Interaction,
   Locale,
@@ -25,12 +26,24 @@ export async function getTopQuotes(
   // This could take longer than 3 seconds
   if (!interaction?.deferred) await interaction?.deferReply()
   async function reply(m: string) {
-    await message?.reply({ content: m })
-    await interaction?.editReply({ content: m })
+    await message?.reply({
+      content: m,
+      allowedMentions: { parse: [] }, // Prevent pings
+    })
+    await interaction?.editReply({
+      content: m,
+      allowedMentions: { parse: [] }, // Prevent pings
+    })
   }
   async function replyEmbed(e: EmbedBuilder) {
-    await message?.reply({ embeds: [e] })
-    await interaction?.editReply({ embeds: [e] })
+    await message?.reply({
+      embeds: [e],
+      allowedMentions: { parse: [] }, // Prevent pings
+    })
+    await interaction?.editReply({
+      embeds: [e],
+      allowedMentions: { parse: [] }, // Prevent pings
+    })
   }
 
   const data = readServerData(incoming.guildId)
@@ -61,14 +74,23 @@ export async function getTopQuotes(
 
   const embed = new EmbedBuilder().setTitle(`Top ${topQuotes.length} Quotes`)
   //  .setDescription(`Here are the top ${topQuotes.length} quotes by upvotes:`)
+  embed.setColor(Colors.Blue)
 
   for (const quote of topQuotes) {
     // Finds the original # of the quote in the server data
     const index = data.quotes.indexOf(quote)
+    let titleString = ""
+    titleString += `#${index + 1}`
+    titleString += `    `
+    titleString += `${quote.upvoteIDs.length}`
+    titleString += `  `
+    titleString += `${data.customPlus ?? Emoji.Plus}`
+    titleString += `    `
+    titleString += `${quote.downvoteIDs.length}`
+    titleString += `  `
+    titleString += `${data.customMinus ?? Emoji.Minus}`
     embed.addFields({
-      name: `#${index + 1}   ${quote.upvoteIDs.length}   ${
-        data.customPlus ?? Emoji.Plus
-      }   ${quote.downvoteIDs.length}   ${data.customMinus ?? Emoji.Minus}`,
+      name: titleString,
       value: `${quote.quote}`,
     })
   }

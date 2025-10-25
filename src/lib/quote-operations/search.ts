@@ -1,6 +1,8 @@
 import {
   BaseInteraction,
   ChatInputCommandInteraction,
+  Colors,
+  EmbedBuilder,
   Message,
 } from "discord.js"
 import fuzzysort from "fuzzysort"
@@ -25,8 +27,24 @@ export async function searchQuote(
   // This could take longer than 3 seconds
   if (!interaction?.deferred) await interaction?.deferReply()
   async function reply(m: string) {
-    await message?.reply({ content: m })
-    await interaction?.editReply({ content: m })
+    await message?.reply({
+      content: m,
+      allowedMentions: { parse: [] }, // Prevent pings
+    })
+    await interaction?.editReply({
+      content: m,
+      allowedMentions: { parse: [] }, // Prevent pings
+    })
+  }
+  async function replyEmbed(e: EmbedBuilder) {
+    await message?.reply({
+      embeds: [e],
+      allowedMentions: { parse: [] }, // Prevent pings
+    })
+    await interaction?.editReply({
+      embeds: [e],
+      allowedMentions: { parse: [] }, // Prevent pings
+    })
   }
 
   const data = readServerData(incoming.guildId)
@@ -44,26 +62,24 @@ export async function searchQuote(
     await displayQuoteInChannel(incoming, data, results[0].obj, true)
   } else {
     // Display the results
-    const resultString = results
+    const embed = new EmbedBuilder().setTitle(
+      `Showing ${Math.max(results.length, count)} matches`
+    )
+
+    embed.setColor(Colors.Blue)
+
+    results
       .slice(0, count) // Limit the number of results displayed
-      .map(
-        (o) =>
-          `(${Math.round(o.score * 100)}%) #${
-            data.quotes.indexOf(o.obj) + 1
-          }: ${o.obj.quote}`
-      )
-      .join("\n")
+      .forEach((r, i) => {
+        // Adds each result as a field
+        embed.addFields({
+          name: `#${data.quotes.indexOf(r.obj) + 1}       (${Math.round(
+            r.score * 100
+          )}% Match)`,
+          value: r.obj.quote,
+        })
+      })
 
-    // Discord has a max of 2000, but we wanna show even less so there's not spam
-    const MAX = 1900
-    const header = `Found ${results.length} quotes:\n`
-    const space = MAX - header.length
-    const body =
-      resultString.length > space
-        ? // Shorten the response if too long
-          resultString.slice(0, space - 3) + "..."
-        : resultString
-
-    await reply(body)
+    await replyEmbed(embed)
   }
 }
