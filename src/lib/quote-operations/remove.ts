@@ -22,6 +22,7 @@ export async function removeQuote(incoming: Interaction | Message, id: number) {
     await interaction?.editReply({ content: m })
   }
 
+  if (!incoming.guildId) return
   const data = readServerData(incoming.guildId)
 
   // Note: `id` starts at 1
@@ -31,7 +32,7 @@ export async function removeQuote(incoming: Interaction | Message, id: number) {
     // Adds the 1 spliced quote to the removed array
     const removedQuote = data.quotes.splice(id - 1, 1)[0]
     removedQuote.removedDate = Date.now() // Set the removal date
-    removedQuote.removedBy = incoming.member.user.id // Set the user who removed it
+    removedQuote.removedBy = incoming.member?.user.id // Set the user who removed it
     data.removed.push(removedQuote) // Add to removed list
     writeServerData(data)
 

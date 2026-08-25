@@ -92,6 +92,7 @@ export default {
 
     const id = interaction.options.getInteger("id", true)
 
+    if (!interaction.guildId) return
     const data = readServerData(interaction.guildId)
 
     // Note: `id` starts at 1

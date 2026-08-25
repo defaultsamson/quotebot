@@ -1,0 +1,3 @@
+overrides:
+  # Force it onto version 5 because there was a typescript 7 issue with version 4
+  '@sapphire/shapeshift@<5': '>=5'

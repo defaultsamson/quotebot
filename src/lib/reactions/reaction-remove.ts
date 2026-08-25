@@ -18,6 +18,7 @@ export async function reactionRemove(
 
   const quoteUniqueId = REACTION_CACHE.get(mess.id)
   if (
+    !quoteUniqueId ||
     isNaN(quoteUniqueId) ||
     quoteUniqueId === null ||
     typeof quoteUniqueId !== "number"
@@ -25,6 +26,7 @@ export async function reactionRemove(
     return
 
   // Find the quote object
+  if (!mess.guildId) return
   const data = readServerData(mess.guildId)
   if (!data) return
   const quote = data.quotes.find((q) => q.internalID === quoteUniqueId)

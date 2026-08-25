@@ -12,7 +12,7 @@ import { displayQuoteInChannel } from "./display-in-channel.js"
 export async function searchQuote(
   incoming: ChatInputCommandInteraction | Message,
   text: string,
-  count: number
+  count?: number | null
 ) {
   if (!count || isNaN(count) || count < 1) count = 1 // Default to 1 if weird
   if (count > 10) count = 10 // Cap at 10
@@ -47,6 +47,7 @@ export async function searchQuote(
     })
   }
 
+  if (!incoming.guildId) return
   const data = readServerData(incoming.guildId)
 
   const results = fuzzysort.go(text, data.quotes, {

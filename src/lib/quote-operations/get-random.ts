@@ -15,6 +15,7 @@ export async function getRandom(
   // It could potentially take more than 3 seconds to load this
   if (!interaction?.deferred) await interaction?.deferReply()
 
+  if (!incoming.guildId) return
   const data = readServerData(incoming.guildId)
   // ID is +1 because IDs start at 1, not 0
   const randomID = Math.floor(Math.random() * data.quotes.length) + 1

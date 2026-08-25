@@ -9,7 +9,7 @@ import { getRandom } from "./get-random.js"
 import { readServerData } from "../server-data/read-write.js"
 import { displayQuoteInChannel } from "./display-in-channel.js"
 
-export async function getQuote(incoming: Interaction | Message, id?: number) {
+export async function getQuote(incoming: Interaction | Message, id?: number | null) {
   /** @deprecated just here for legacy `!q` commands */
   const message = incoming instanceof Message ? incoming : null
   const interaction =
@@ -29,6 +29,7 @@ export async function getQuote(incoming: Interaction | Message, id?: number) {
     await interaction?.editReply({ content: m })
   }
 
+  if (!incoming.guildId) return
   const data = readServerData(incoming.guildId)
 
   // Note: `id` starts at 1

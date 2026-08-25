@@ -19,12 +19,12 @@
     "bot": "if [ -f ./dist/src/bot.js ]; then node ./dist/src/bot.js; else echo 'Error: ./dist/src/bot.js not found. Please run `npm run build` first.'; fi"
   },
   "devDependencies": {
-    "typescript": "^5.9.2"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
-    "date-fns": "^4.1.0",
-    "dedent": "^1.6.0",
-    "discord.js": "^14.21.0",
-    "fuzzysort": "^3.1.0"
+    "date-fns": "^4.4.0",
+    "dedent": "^1.7.2",
+    "discord.js": "^14.27.0",
+    "fuzzysort": "^4.0.2"
   }
 }

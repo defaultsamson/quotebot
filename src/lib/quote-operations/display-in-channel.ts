@@ -77,6 +77,7 @@ export async function displayQuoteInChannel(
 
   // Get the channel with a provided ID, or with ServerData channelID
   const targetChannel = forceReply ? incoming.channelId : data.channelID
+  if (!targetChannel) return await reply(`InternalError: TargetChannel doens't exist.`)
   const channel = guild.channels.cache.get(targetChannel)
   if (!channel || !channel.isTextBased()) {
     return await reply(`InternalError: Channel ${targetChannel} not found.`)
@@ -153,10 +154,10 @@ export async function displayQuoteInChannel(
 
   if (forceReply) {
     // Reply directly to the user
-    await replyEmbed(embed).then(addEmojiToMessage)
+    await replyEmbed(embed).then(v => { if (v) addEmojiToMessage(v) })
     // await interaction?.editReply(response).then(addEmojiToMessage)
   } else {
     // Send the quote to the channel
-    await channel.send({ embeds: [embed] }).then(addEmojiToMessage)
+    await channel.send({ embeds: [embed] }).then(v => { if (v) addEmojiToMessage(v) })
   }
 }

@@ -45,7 +45,7 @@ writeServerData(newData)
 
 import config from "../config.json" with { type: "json" }
 const TOKEN = config.token
-const CLIENT_ID = config.clientID
+const CLIENT_ID = config.appID
 
 // Load the commands
 import COMMANDS from "./commands/all.js"

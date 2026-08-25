@@ -148,6 +148,7 @@ export default {
     if (!interaction.deferred)
       await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
+    if (!interaction.guildId) return
     const data = readServerData(interaction.guildId)
 
     const subcommandGroup = interaction.options.getSubcommandGroup()
@@ -199,9 +200,8 @@ export default {
           writeServerData(data)
 
           await interaction.editReply({
-            content: `Timeout set to ${timeout} min${
-              timeout === 1 ? "" : "s"
-            }.`,
+            content: `Timeout set to ${timeout} min${timeout === 1 ? "" : "s"
+              }.`,
           })
           return
         }
@@ -214,15 +214,17 @@ export default {
           const emote = interaction.options.getString("emote")
           const value = interaction.options.getString("value")
 
-          switch (emote) {
-            case "upvote":
-              // Handle upvote emoji
-              data.customPlus = value
-              break
-            case "downvote":
-              // Handle downvote emoji
-              data.customMinus = value
-              break
+          if (value) {
+            switch (emote) {
+              case "upvote":
+                // Handle upvote emoji
+                data.customPlus = value
+                break
+              case "downvote":
+                // Handle downvote emoji
+                data.customMinus = value
+                break
+            }
           }
 
           writeServerData(data)
@@ -293,8 +295,8 @@ export default {
     if (subcommandGroup === "users") {
       switch (subcommand) {
         case "add": {
-          const userID = interaction.options.getUser("user").id
-          if (!data.adminIDs.includes(userID)) {
+          const userID = interaction.options.getUser("user")?.id
+          if (userID && !data.adminIDs.includes(userID)) {
             data.adminIDs.push(userID)
             writeServerData(data)
 
@@ -309,9 +311,9 @@ export default {
           return
         }
         case "remove": {
-          const userID = interaction.options.getUser("user").id
+          const userID = interaction.options.getUser("user")?.id
 
-          if (data.adminIDs.includes(userID)) {
+          if (userID && data.adminIDs.includes(userID)) {
             data.adminIDs.splice(data.adminIDs.indexOf(userID), 1)
             writeServerData(data)
 

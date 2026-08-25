@@ -36,12 +36,13 @@ export async function addQuote(
     )
   }
 
+  if (!incoming.guildId) return
   const data = readServerData(incoming.guildId)
 
   const newQuote: Quote = {
     internalID: data.nextInternalID,
     quote: text,
-    authorID: incoming.member.user.id,
+    authorID: incoming.member?.user.id ?? null,
     date: Date.now(),
     upvoteIDs: [],
     downvoteIDs: [],

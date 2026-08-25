@@ -11,7 +11,7 @@ import { Emoji } from "../../types/emojis.js"
 
 export async function getBottomQuotes(
   incoming: Interaction | Message,
-  count?: number
+  count?: number | null
 ) {
   if (!count || isNaN(count) || count < 1) count = 6 // Default to 6 if weird
   if (count > 20) count = 20 // Cap at 20
@@ -34,6 +34,7 @@ export async function getBottomQuotes(
     await interaction?.editReply({ content: m })
   }
 
+  if (!incoming.guildId) return
   const data = readServerData(incoming.guildId)
 
   const bottomQuotes = data.quotes

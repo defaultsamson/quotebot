@@ -43,6 +43,7 @@ export async function getInfo(incoming: Interaction | Message, id: number) {
     })
   }
 
+  if (!incoming.guildId) return
   const data = readServerData(incoming.guildId)
 
   // Note: `id` starts at 1
@@ -70,9 +71,10 @@ export async function getInfo(incoming: Interaction | Message, id: number) {
   // )
   if (quote.authorID) {
     embed.setThumbnail(
-      incoming.guild.members.cache
-        .get(quote.authorID)
+      incoming?.guild?.members?.cache
+        ?.get(quote.authorID)
         ?.user?.displayAvatarURL({ size: 64 })
+      ?? null
     )
   }
 
@@ -90,8 +92,8 @@ export async function getInfo(incoming: Interaction | Message, id: number) {
     value: quote.authorID
       ? `<@${quote.authorID}>`
       : swed
-      ? `Okänd. Gör anspråk med\n${claimCommand}`
-      : `Unknown. Claim using\n${claimCommand}`,
+        ? `Okänd. Gör anspråk med\n${claimCommand}`
+        : `Unknown. Claim using\n${claimCommand}`,
     inline: true,
   })
   // Quote row
@@ -103,24 +105,20 @@ export async function getInfo(incoming: Interaction | Message, id: number) {
   })
   // Upvotes
   embed.addFields({
-    name: `${data.customPlus ?? Emoji.Plus}  ${
-      swed ? "Upp-voteringar" : "Upvotes"
-    }`,
-    value: `${
-      quote.upvoteIDs.map((id) => `<@${id}>`).join(", ") ||
+    name: `${data.customPlus ?? Emoji.Plus}  ${swed ? "Upp-voteringar" : "Upvotes"
+      }`,
+    value: `${quote.upvoteIDs.map((id) => `<@${id}>`).join(", ") ||
       (swed ? "Ingen" : "None")
-    }`,
+      }`,
     inline: true,
   })
   // Downvotes
   embed.addFields({
-    name: `${data.customMinus ?? Emoji.Minus}  ${
-      swed ? "Ned-voteringar" : "Downvotes"
-    }`,
-    value: `${
-      quote.downvoteIDs.map((id) => `<@${id}>`).join(", ") ||
+    name: `${data.customMinus ?? Emoji.Minus}  ${swed ? "Ned-voteringar" : "Downvotes"
+      }`,
+    value: `${quote.downvoteIDs.map((id) => `<@${id}>`).join(", ") ||
       (swed ? "Ingen" : "None")
-    }`,
+      }`,
     inline: true,
   })
 
